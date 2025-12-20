@@ -1,56 +1,92 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, BarChart3, Globe } from "lucide-react";
+import ActivityChart from "@/components/ActivityChart";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fetchLatestWai, fetchWaiHistory } from "@/lib/api"; // Unsere neuen Funktionen
+import { Bitcoin, TrendingUp, Activity, DollarSign } from "lucide-react"; // Krypto Icons
 
-export default function LandingPage() {
+export default async function DashboardPage() {
+  // Parallel Daten laden für maximale Geschwindigkeit
+  const latestDataPromise = fetchLatestWai();
+  const historyDataPromise = fetchWaiHistory();
+
+  const [currentStatus, historyData] = await Promise.all([
+    latestDataPromise, 
+    historyDataPromise
+  ]);
+
   return (
-    <main className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center bg-gradient-to-b from-slate-50 to-blue-50 p-4">
-      
-      {/* Hero Section */}
-      <div className="text-center max-w-3xl space-y-6">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-6xl text-slate-900">
-          Whale Activity Index <br />
-          <span className="text-blue-600">Monitoring & Analytics</span>
-        </h1>
+    <main className="min-h-screen bg-slate-50 p-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         
-        <p className="text-lg text-slate-600 mx-auto max-w-2xl">
-          Willkommen beim WAI Projekt. Wir analysieren und visualisieren Wal-Bewegungen 
-          in Echtzeit, um Forschern und Naturschützern wertvolle Daten zu liefern.
-        </p>
-
-        <div className="flex gap-4 justify-center pt-4">
-          <Link href="/dashboard">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 h-12 px-8 text-lg">
-              Statistiken ansehen <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <Link href="https://github.com" target="_blank">
-             <Button variant="outline" size="lg" className="h-12 px-8 text-lg">
-              Dokumentation
-            </Button>
-          </Link>
+        {/* Header - Jetzt im Finance Look */}
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-orange-100 rounded-full">
+            <Bitcoin className="h-8 w-8 text-orange-500" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Bitcoin Whale Index</h1>
+            <p className="text-slate-500">On-Chain Analyse großer Wallet-Bewegungen</p>
+          </div>
         </div>
+
+        {/* KPI Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          
+          {/* Karte 1: Der WAI Score */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Whale Activity Index (WAI)</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {currentStatus.wai_score ? currentStatus.wai_score.toFixed(2) : "0.00"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Sentiment Indikator (0-100)
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Karte 2: Transaktionen / Wale (Anpassbar je nach echter API Response) */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Aktive Wale (24h)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {currentStatus.active_whales || "--"} 
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Große Wallet-Bewegungen erkannt
+              </p>
+            </CardContent>
+          </Card>
+
+           {/* Karte 3: Letztes Update */}
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Letztes Update</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold">
+                {currentStatus.timestamp ? new Date(currentStatus.timestamp).toLocaleTimeString() : "--:--"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentStatus.timestamp ? new Date(currentStatus.timestamp).toLocaleDateString() : ""}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chart Section */}
+        <div className="grid gap-4">
+           {/* Wir geben die History-Daten an die Chart Komponente weiter */}
+           <ActivityChart data={historyData} />
+        </div>
+        
       </div>
-
-      {/* Feature Grid (Optional, sieht aber gut aus) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 max-w-5xl text-center">
-        <div className="p-6 bg-white rounded-xl shadow-sm border">
-          <Globe className="h-10 w-10 text-blue-500 mx-auto mb-4" />
-          <h3 className="font-bold text-xl mb-2">Globale Daten</h3>
-          <p className="text-slate-500">Erfassung von Wal-Sichtungen aus verschiedenen Ozeanen.</p>
-        </div>
-        <div className="p-6 bg-white rounded-xl shadow-sm border">
-          <BarChart3 className="h-10 w-10 text-blue-500 mx-auto mb-4" />
-          <h3 className="font-bold text-xl mb-2">Live Analyse</h3>
-          <p className="text-slate-500">Echtzeit-Berechnung des Activity Scores für schnelle Einblicke.</p>
-        </div>
-        <div className="p-6 bg-white rounded-xl shadow-sm border">
-          <ArrowRight className="h-10 w-10 text-blue-500 mx-auto mb-4" />
-          <h3 className="font-bold text-xl mb-2">Historie</h3>
-          <p className="text-slate-500">Lückenlose Aufzeichnung aller Bewegungen der letzten Jahre.</p>
-        </div>
-      </div>
-
     </main>
   );
 }
