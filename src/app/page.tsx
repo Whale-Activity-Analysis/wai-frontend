@@ -1,4 +1,4 @@
-'use client'; // <--- WICHTIG: Das macht es zur Client Component
+'use client';
 
 import { useEffect, useState } from "react";
 import ActivityChart from "@/components/ActivityChart";
@@ -7,25 +7,22 @@ import { fetchLatestWai, fetchWaiHistory } from "@/lib/api";
 import { Bitcoin, TrendingUp, Activity, DollarSign, Loader2, AlertCircle } from "lucide-react";
 
 export default function DashboardPage() {
-  // 1. State für Daten, Lade-Status und Fehler definieren
   const [currentStatus, setCurrentStatus] = useState<any>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 2. useEffect benutzen, um Daten beim Laden der Seite zu holen
   useEffect(() => {
     async function loadData() {
       try {
-        console.log("Starte Datenabruf..."); // Debugging
+        console.log("Starte Datenabruf...");
         
-        // Parallel Daten laden
         const [latestData, historyData] = await Promise.all([
           fetchLatestWai(),
           fetchWaiHistory()
         ]);
 
-        console.log("Daten erhalten:", latestData); // Debugging
+        console.log("Daten erhalten:", latestData);
 
         setCurrentStatus(latestData);
         setHistoryData(historyData);
@@ -40,7 +37,6 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
-  // 3. Lade-Zustand anzeigen
   if (isLoading) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -52,7 +48,6 @@ export default function DashboardPage() {
     );
   }
 
-  // 4. Fehler-Zustand anzeigen (z.B. Mixed Content Fehler)
   if (error) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -70,7 +65,6 @@ export default function DashboardPage() {
     );
   }
 
-  // 5. Wenn Daten da sind: Das normale Dashboard anzeigen
   return (
     <main className="min-h-screen bg-slate-50 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -95,3 +89,55 @@ export default function DashboardPage() {
               <CardTitle className="text-sm font-medium">Whale Activity Index (WAI)</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {currentStatus?.wai_score ? currentStatus.wai_score.toFixed(2) : "0.00"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Sentiment Indikator (0-100)
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Karte 2: Aktive Wale */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Aktive Wale (24h)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {currentStatus?.active_whales || "--"} 
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Große Wallet-Bewegungen erkannt
+              </p>
+            </CardContent>
+          </Card>
+
+           {/* Karte 3: Timestamp */}
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Letztes Update</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-bold">
+                {currentStatus?.timestamp ? new Date(currentStatus.timestamp).toLocaleTimeString() : "--:--"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentStatus?.timestamp ? new Date(currentStatus.timestamp).toLocaleDateString() : ""}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chart Section */}
+        <div className="grid gap-4">
+           <ActivityChart data={historyData} />
+        </div>
+        
+      </div>
+    </main>
+  );
+}
