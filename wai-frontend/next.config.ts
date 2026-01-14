@@ -1,12 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',  // WICHTIG: Erzwingt eine statische HTML-Version
+  output: 'export',  // Zwingend für GitHub Pages
   
-  // WICHTIG: Ersetze 'wai-frontend' mit deinem EXAKTEN Repo-Namen auf GitHub
+  // WICHTIG: Wenn dein Repo "wai-frontend" heißt, muss das hier stehen.
+  // Wenn dein Repo "whale-activity-analysis.github.io" heißt, lass diese Zeile weg!
   basePath: '/wai-frontend', 
   
   images: {
-    unoptimized: true, // WICHTIG: Next.js Image-Optimierung geht nicht auf GitHub Pages
+    unoptimized: true, // Zwingend, sonst blockiert Next.js Bilder
   },
 };
 
