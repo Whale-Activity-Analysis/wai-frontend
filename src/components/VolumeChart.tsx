@@ -37,7 +37,7 @@ export default function VolumeChart({ data }: Props) {
                 labelFormatter={(label) => new Date(label).toLocaleDateString()}
                 formatter={(value: number) => [`${value.toLocaleString()} BTC`, 'Volumen']}
               />
-              <Bar dataKey="whale_tx_volume_btc" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="volume" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

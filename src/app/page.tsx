@@ -132,8 +132,9 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Chart Section */}
-        <div className="grid gap-4">
+{/* Chart Section */}
+        {/* WICHTIG: h-[400px] definiert die Höhe! */}
+        <div className="grid gap-4 w-full h-[400px]">
            <ActivityChart data={historyData} />
         </div>
         
