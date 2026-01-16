@@ -23,7 +23,7 @@ export default function CombinedChart({ data }: Props) {
   else if (data && Array.isArray(data.items)) chartData = data.items;
   else if (data && Array.isArray(data.data)) chartData = data.data;
 
-  // Umdrehen (alt -> neu)
+  // Umdrehen (alt -> neu) für korrekte Zeitachse
   const sortedData = [...chartData].reverse();
 
   return (
@@ -58,7 +58,7 @@ export default function CombinedChart({ data }: Props) {
                 yAxisId="right" 
                 orientation="right" 
                 tick={{fontSize: 12}}
-                tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} // Zeigt Tausender an (z.B. 20k)
+                tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} 
               />
 
               <Tooltip 
@@ -67,21 +67,21 @@ export default function CombinedChart({ data }: Props) {
               />
               <Legend />
 
-              {/* Das Volumen als Balken im Hintergrund (an rechte Achse gebunden) */}
+              {/* KORREKTUR: dataKey auf "volume" gesetzt, damit es zur API passt */}
               <Bar 
                 yAxisId="right"
-                dataKey="whale_tx_volume_btc" 
+                dataKey="volume" 
                 name="Volumen (BTC)" 
-                fill="#bfdbfe" // Helles Blau, damit es dezent ist
+                fill="#bfdbfe" 
                 barSize={20}
                 radius={[4, 4, 0, 0]}
               />
 
-              {/* Der Index als Linie im Vordergrund (an linke Achse gebunden) */}
+              {/* Der Index als Linie */}
               <Line 
                 yAxisId="left"
                 type="monotone" 
-                dataKey="wai_index" 
+                dataKey="wai" 
                 name="WAI Index"
                 stroke="#f97316" 
                 strokeWidth={3} 

@@ -1,21 +1,74 @@
+'use client';
+
+import { useEffect, useState } from "react";
+// 1. IMPORTIEREN DER NEUEN GRAPHERN
 import ActivityChart from "@/components/ActivityChart";
+import CombinedChart from "@/components/CombinedChart"; // <--- NEU
+import VolumeChart from "@/components/VolumeChart";     // <--- NEU
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchLatestWai, fetchWaiHistory } from "@/lib/api"; 
-import { Bitcoin, TrendingUp, Activity, DollarSign } from "lucide-react"; 
-import VolumeChart from "@/components/VolumeChart";
-import CombinedChart from "@/components/CombinedChart";
+import { fetchLatestWai, fetchWaiHistory } from "@/lib/api";
+import { Bitcoin, TrendingUp, Activity, DollarSign, Loader2, AlertCircle } from "lucide-react";
 
-export default async function DashboardPage() {
-  // Wir holen uns die Historie, da wir wissen, dass die funktioniert
-  const historyResponse = await fetchWaiHistory();
+export default function DashboardPage() {
+  const [currentStatus, setCurrentStatus] = useState<any>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Daten extrahieren:
-  // Die API liefert { count: 19, data: [...] }
-  // Wir nehmen das Array aus "data".
-  const historyData = historyResponse.data || [];
-  
-  // Der aktuellste Eintrag ist der erste in der Liste (Index 0), laut deinem JSON
-  const currentStatus = historyData.length > 0 ? historyData[0] : {};
+  useEffect(() => {
+    async function loadData() {
+      try {
+        console.log("Starte Datenabruf...");
+        
+        const [latestData, historyResponse] = await Promise.all([
+          fetchLatestWai(),
+          fetchWaiHistory()
+        ]);
+
+        console.log("Daten erhalten:", latestData);
+
+        setCurrentStatus(latestData);
+        
+        // Daten auspacken (falls vom Backend im {data: []} Format)
+        const realHistoryArray = historyResponse.data || historyResponse;
+        setHistoryData(realHistoryArray);
+
+      } catch (err: any) {
+        console.error("Fehler im Frontend:", err);
+        setError(err.message || "Unbekannter Fehler beim Laden");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
+          <p className="text-slate-500">Lade Wal-Daten...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
+          <div className="flex items-center gap-3 mb-2">
+            <AlertCircle className="text-red-500" />
+            <h2 className="text-lg font-bold text-slate-800">Fehler beim Laden</h2>
+          </div>
+          <p className="text-slate-600 mb-4">{error}</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 p-8">
@@ -35,7 +88,6 @@ export default async function DashboardPage() {
         {/* KPI Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           
-          {/* Karte 1: WAI Index */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Whale Activity Index (WAI)</CardTitle>
@@ -43,61 +95,64 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {/* Hier prüfen wir auf 'wai_index' */}
-                {currentStatus.wai_index !== undefined ? currentStatus.wai_index : "--"}
+                {currentStatus?.wai !== undefined ? currentStatus.wai.toFixed(2) : "0.00"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Sentiment Indikator (0-100)
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Sentiment Indikator (0-100)</p>
             </CardContent>
           </Card>
 
-          {/* Karte 2: Whale TX Count */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Whale Transaktionen</CardTitle>
+              <CardTitle className="text-sm font-medium">Aktive Wale (24h)</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {/* Hier prüfen wir auf 'whale_tx_count' */}
-                {currentStatus.whale_tx_count !== undefined ? currentStatus.whale_tx_count : "--"} 
+                {currentStatus?.tx_count !== undefined ? currentStatus.tx_count : "--"} 
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Große Bewegungen (&gt;100 BTC)
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Große Wallet-Bewegungen</p>
             </CardContent>
           </Card>
 
-           {/* Karte 3: Datum */}
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Datenstand</CardTitle>
+              <CardTitle className="text-sm font-medium">Letztes Update</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold">
-                 {/* Hier prüfen wir auf 'date' */}
-                {currentStatus.date ? new Date(currentStatus.date).toLocaleDateString() : "--"}
+                {currentStatus?.date || "--"}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Täglicher Abschluss
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Tagesabschluss</p>
             </CardContent>
           </Card>
         </div>
 
-{/* Chart Section */}
-        <div className="grid gap-4">
-           <ActivityChart data={historyResponse} />
-           {/* Das neue Volumen-Chart */}
-           <VolumeChart data={historyResponse} />
-           {/* Das neue Volumen-Chart */}
-           <CombinedChart data={historyResponse} />
+        {/* === CHARTS BEREICH === */}
+        {/* 2. HIER FÜGEN WIR DIE NEUEN GRAPHERN EIN */}
+        <div className="space-y-8">
+            
+            {/* Graph 1: Historie (WAI Verlauf) */}
+            <div className="grid gap-4 w-full h-[400px]">
+              {historyData.length > 0 ? (
+                <ActivityChart data={historyData} />
+              ) : (
+                <div className="flex items-center justify-center h-full text-slate-400 border rounded-lg">Keine Daten</div>
+              )}
+            </div>
+
+            {/* Graph 2: Kombiniert (WAI + Volumen) */}
+            <div className="grid gap-4 w-full">
+                 {historyData.length > 0 && <CombinedChart data={historyData} />}
+            </div>
+
+            {/* Graph 3: Nur Volumen */}
+            <div className="grid gap-4 w-full">
+                 {historyData.length > 0 && <VolumeChart data={historyData} />}
+            </div>
+
         </div>
         
-
-
       </div>
     </main>
   );

@@ -51,10 +51,9 @@ export default function ActivityChart({ data }: Props) {
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               />
               
-              {/* Hier 'wai_index' statt 'wai_score' */}
               <Line 
                 type="monotone" 
-                dataKey="wai_index"  
+                dataKey="wai"  
                 stroke="#f97316" 
                 strokeWidth={3} 
                 dot={false}
