@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🐳 WAI Project - Frontend
 
-## Getting Started
+Das offizielle Frontend für den Bitcoin Whale Activity Index (WAI). Diese Web-App visualisiert On-Chain-Daten in Echtzeit, um Wal-Aktivitäten (Activity) und deren Absichten (Intent) zu analysieren.
+🚀 Features
 
-First, run the development server:
+    Modernes Dashboard: Echtzeit-Übersicht über WAI (Activity) und WII (Intent).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    Interaktive Charts:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+        Activity Chart: Vergleich von WAI v2 (Live) vs. v1 (Legacy) vs. Bitcoin Preis.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+        Intent Chart: Visualisierung von Exchange Netflows (Inflow/Outflow) und Signalen.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+        Toggle-Funktionen: Linien im Chart an-/abschalten.
 
-## Learn More
+    Landing Page: Conversion-optimierte Startseite für neue Nutzer.
 
-To learn more about Next.js, take a look at the following resources:
+    Sichere Kommunikation: Vollständige HTTPS-Integration zum Backend via DuckDNS.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    Responsive Design: Optimiert für Desktop und Mobile.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🛠 Tech Stack
 
-## Deploy on Vercel
+    Framework: Next.js 14 (App Router)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+    Sprache: TypeScript
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    Styling: Tailwind CSS
+
+    UI Komponenten: shadcn/ui
+
+    Charts: Recharts
+
+    Icons: Lucide React
+
+    Hosting: GitHub Pages (Static Export)
+
+⚙️ Installation & Lokale Entwicklung
+
+Stelle sicher, dass du Node.js installiert hast (Version 18+ empfohlen).
+
+    Repository klonen:
+    Bash
+
+git clone https://github.com/DEIN-USERNAME/wai-frontend.git
+cd wai-frontend
+
+Abhängigkeiten installieren:
+Bash
+
+npm install
+
+Umgebungsvariablen setzen: Erstelle eine Datei .env.local im Hauptverzeichnis und füge die Backend-URL hinzu:
+Bash
+
+NEXT_PUBLIC_API_URL=https://wai-backend.duckdns.org
+
+Entwicklungsserver starten:
+Bash
+
+    npm run dev
+
+    Öffne http://localhost:3000 in deinem Browser.
+
+📦 Deployment
+
+Das Projekt wird automatisch über GitHub Actions auf GitHub Pages deployt.
+
+    Jeder Push auf den main Branch löst den Workflow aus.
+
+    Der Workflow baut die statische Seite (npm run build).
+
+    Wichtig: In den GitHub Repository Settings muss unter Variables (Actions) die Variable NEXT_PUBLIC_API_URL hinterlegt sein.
+
+📂 Projektstruktur
+
+src/
+├── app/
+│   ├── page.tsx           # Landing Page (Startseite)
+│   ├── layout.tsx         # Globales Layout (inkl. Navbar)
+│   └── dashboard/         # Das geschützte Dashboard
+├── components/
+│   ├── ui/                # Wiederverwendbare UI-Elemente (Cards, Buttons...)
+│   ├── ActivityChart.tsx  # WAI & Preis Chart
+│   ├── IntentChart.tsx    # WII & Netflow Chart
+│   └── Navbar.tsx         # Globale Navigation
+└── lib/
+    └── api.ts             # API-Calls zum Python Backend
