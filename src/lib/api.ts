@@ -1,7 +1,7 @@
 // src/lib/api.ts
 
 // URL Konfiguration
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://80.158.78.0:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://wai-backend.duckdns.org';
 
 // 1. Neuesten WAI Wert holen
 export async function fetchLatestWai() {
