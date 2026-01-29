@@ -10,6 +10,7 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Legend,
+  Cell,
   ReferenceLine
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,7 +83,7 @@ export default function IntentChart({ data }: Props) {
                 fill="#94a3b8" // Fallback Farbe
               >
                 {sortedData.map((entry, index) => (
-                    <cell 
+                    <Cell 
                         key={`cell-${index}`} 
                         // Wenn Netflow < 0 (Outflow) -> Grün, sonst Rot
                         fill={entry.exchange_netflow < 0 ? '#22c55e' : '#ef4444'} 
