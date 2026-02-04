@@ -9,25 +9,23 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend 
+  ResponsiveContainer 
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button"; // Import für die Toggle-Buttons
-import { Eye, EyeOff } from "lucide-react"; // Icons für Sichtbarkeit
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react"; 
 
 interface Props {
   data: any[];
 }
 
 export default function ActivityChart({ data }: Props) {
-  // --- STATE FÜR DIE TOGGLES ---
-  // Standardmäßig: V2 und Preis sind AN, V1 ist AN (oder aus, wie du magst)
+  // --- STATE ---
   const [showV1, setShowV1] = useState(true);
   const [showV2, setShowV2] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
 
-  // --- SICHERHEITS-CHECK ---
+  // --- SAFETY CHECK ---
   if (!data || !Array.isArray(data) || data.length === 0) {
     return (
       <Card className="w-full shadow-sm">
@@ -48,8 +46,6 @@ export default function ActivityChart({ data }: Props) {
   return (
     <Card className="w-full shadow-sm">
       <CardHeader className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0 pb-6">
-        
-        {/* TITEL & BESCHREIBUNG (Links) */}
         <div>
             <CardTitle>Markt-Kontext</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
@@ -57,10 +53,8 @@ export default function ActivityChart({ data }: Props) {
             </p>
         </div>
 
-        {/* TOGGLE BUTTONS (Rechts) */}
         <div className="flex flex-wrap gap-2">
-            
-            {/* Toggle: WAI v2 (Live) */}
+            {/* Toggle: WAI v2 */}
             <Button 
                 variant={showV2 ? "default" : "outline"} 
                 size="sm" 
@@ -71,7 +65,7 @@ export default function ActivityChart({ data }: Props) {
                 WAI v2
             </Button>
 
-            {/* Toggle: WAI v1 (Legacy) */}
+            {/* Toggle: WAI v1 */}
             <Button 
                 variant={showV1 ? "secondary" : "outline"} 
                 size="sm" 
@@ -92,12 +86,12 @@ export default function ActivityChart({ data }: Props) {
                 {showPrice ? <Eye className="w-3 h-3 mr-2" /> : <EyeOff className="w-3 h-3 mr-2" />}
                 BTC Preis
             </Button>
-
         </div>
       </CardHeader>
 
       <CardContent>
-        <div className="h-[450px] w-full">
+        {/* HIER: Höhe auf 400px reduziert, damit es nicht zu riesig wird */}
+        <div className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={sortedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -109,7 +103,6 @@ export default function ActivityChart({ data }: Props) {
                 minTickGap={30}
               />
               
-              {/* Linke Achse: WAI (0-100) - Nur zeigen wenn v1 oder v2 an ist */}
               <YAxis 
                 yAxisId="left" 
                 domain={[0, 100]} 
@@ -118,7 +111,6 @@ export default function ActivityChart({ data }: Props) {
                 hide={!showV1 && !showV2}
               />
 
-              {/* Rechte Achse: Bitcoin Preis - Nur zeigen wenn Preis an ist */}
               <YAxis 
                 yAxisId="right" 
                 orientation="right" 
@@ -133,11 +125,7 @@ export default function ActivityChart({ data }: Props) {
                 labelFormatter={(label) => new Date(label).toLocaleDateString()}
                 contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
-              
-              {/* Wir verstecken die Standard-Legende, da wir jetzt eigene Buttons haben */}
-              {/* <Legend verticalAlign="top" height={36}/> */}
 
-              {/* 1. BTC Preis (Conditional Rendering) */}
               {showPrice && (
                   <Area
                     yAxisId="right"
@@ -151,7 +139,6 @@ export default function ActivityChart({ data }: Props) {
                   />
               )}
 
-              {/* 2. Der alte WAI v1 (Conditional Rendering) */}
               {showV1 && (
                   <Line 
                     yAxisId="left"
@@ -166,7 +153,6 @@ export default function ActivityChart({ data }: Props) {
                   />
               )}
 
-              {/* 3. Der neue WAI v2 (Conditional Rendering) */}
               {showV2 && (
                   <Line 
                     yAxisId="left"
