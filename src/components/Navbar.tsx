@@ -36,7 +36,7 @@ export default function Navbar() {
         {/* --- DESKTOP NAVI --- */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link href="/dashboard" className={isActive("/dashboard")}>Dashboard</Link>
-            <Link href="/analysis" className={isActive("/analysis")}>Analyse</Link>
+            <Link href="/ai-analysis" className={isActive("/analysis")}>AI Analyse</Link>
             <Link href="/pricing" className={isActive("/pricing")}>Preise</Link>
             <Link href="/about" className={isActive("/about")}>Über uns</Link>
         </div>
