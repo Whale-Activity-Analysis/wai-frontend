@@ -1,47 +1,87 @@
 "use client";
 
+import * as React from "react"
 import Link from "next/link";
-import { Bitcoin, ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/ui/mode-toggle"; 
+import { Bitcoin, Menu, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  
+  // Wichtig für Theme-Switch: Verhindert Hydration-Fehler
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isActive = (path: string) => pathname === path ? "text-orange-500 font-semibold" : "text-neutral-600 dark:text-neutral-400 hover:text-orange-500 transition-colors";
+
   return (
-    // FIX: dark:bg-neutral-950/80 für echten Grau-Ton
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md dark:bg-neutral-950/80 dark:border-neutral-800">
+    <nav className="sticky top-0 z-50 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         
-        {/* LOGO */}
+        {/* --- LOGO --- */}
         <Link href="/" className="flex items-center space-x-2">
-          <div className="bg-orange-500 p-1.5 rounded-lg">
-             <Bitcoin className="h-6 w-6 text-white" />
-          </div>
-          <span className="font-bold text-xl text-neutral-900 dark:text-neutral-50 tracking-tight">
-            WAI Project
-          </span>
+            <div className="p-1.5 bg-orange-100 dark:bg-orange-500/10 rounded-lg">
+                <Bitcoin className="h-5 w-5 text-orange-600 dark:text-orange-500" />
+            </div>
+            <span className="font-bold text-lg text-neutral-900 dark:text-white tracking-tight">
+              WAI Project
+            </span>
         </Link>
 
-        {/* NAVIGATION */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-neutral-600 dark:text-neutral-300">
-          <Link href="/#features" className="hover:text-orange-500 transition-colors">Features</Link>
-          <Link href="/pricing" className="hover:text-orange-500 transition-colors">Preise</Link>
-          <Link href="/about" className="hover:text-orange-500 transition-colors">Über uns</Link>
-        </nav>
-
-        {/* RECHTS */}
-        <div className="flex items-center gap-4">
-          <ModeToggle />
-          <Link href="/login" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white hidden sm:block">
-            Login
-          </Link>
-          <Link href="/dashboard">
-            <Button className="bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-orange-500 dark:hover:bg-orange-600">
-              Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+        {/* --- DESKTOP NAVI --- */}
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+            <Link href="/dashboard" className={isActive("/dashboard")}>Dashboard</Link>
+            <Link href="/analysis" className={isActive("/analysis")}>Analyse</Link>
+            <Link href="/pricing" className={isActive("/pricing")}>Preise</Link>
+            <Link href="/about" className={isActive("/about")}>Über uns</Link>
         </div>
 
+        {/* --- RECHTS: ACTIONS --- */}
+        <div className="flex items-center gap-2">
+            
+            {/* 1. Theme Toggle (Nur anzeigen wenn Client gemountet ist) */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white mr-2"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5 transition-all" />
+                ) : (
+                  <Moon className="h-5 w-5 transition-all" />
+                )}
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            )}
+
+            {/* 2. Login & Register */}
+            <Link href="/login" className="hidden md:block">
+                <Button variant="ghost" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
+                    Login
+                </Button>
+            </Link>
+            
+            <Link href="/register">
+                <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20">
+                    Get Started
+                </Button>
+            </Link>
+
+            {/* Mobile Menu Toggle (Platzhalter) */}
+            <div className="md:hidden ml-2">
+                 <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                 </Button>
+            </div>
+        </div>
       </div>
-    </header>
+    </nav>
   );
 }
