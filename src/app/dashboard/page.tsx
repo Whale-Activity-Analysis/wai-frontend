@@ -9,7 +9,8 @@ import ActivityChart from "@/components/ActivityChart";
 import CombinedChart from "@/components/CombinedChart";
 import IntentChart from "@/components/IntentChart";
 import PremiumWrapper from "@/components/PremiumWrapper"; 
-import FadeIn from "@/components/FadeIn"; // <--- Deine neue Animation
+import FadeIn from "@/components/FadeIn";
+import NumberTicker from "@/components/NumberTicker";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -158,9 +159,8 @@ export default function DashboardPage() {
     ? "text-green-600 dark:text-green-400" 
     : "text-red-600 dark:text-red-400"
 }`}>
-    {/* FIX: Wir prüfen jetzt explizit auf "typeof btcData.price === 'number'" */}
     {btcData && typeof btcData.price === 'number' 
-      ? `$${btcData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+      ? <NumberTicker value={btcData.price} prefix="$" decimals={2} /> 
       : "Lade..."
     }
 </p>
