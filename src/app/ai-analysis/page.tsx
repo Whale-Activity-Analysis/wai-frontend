@@ -11,6 +11,7 @@ export default function AIAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
+  
   useEffect(() => {
     async function load() {
       try {
