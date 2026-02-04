@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, memo } from "react"; // <--- MEMO IMPORT
 import { 
   ComposedChart, 
   Line, 
@@ -16,13 +16,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Activity as ActivityIcon } from "lucide-react"; 
 
-// --- 1. CUSTOM TOOLTIP KOMPONENTE ---
-// Diese Komponente ersetzt das Standard-Popup beim Drüberfahren.
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const dateStr = new Date(label).toLocaleDateString(undefined, { weekday: 'short', day: '2-digit', month: 'short' });
     return (
-      // Glasmorphismus-Look (Blur + Transparenz)
       <div className="bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(249,115,22,0.15)] text-sm">
         <p className="font-medium text-neutral-700 dark:text-neutral-300 mb-2 border-b border-neutral-100 dark:border-neutral-800 pb-1">
             {dateStr}
@@ -31,7 +28,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             {payload.map((entry: any, index: number) => (
                  <div key={index} className="flex items-center justify-between gap-4">
                     <span className="flex items-center gap-2" style={{ color: entry.color }}>
-                        {/* Kleiner farbiger Punkt vor dem Namen */}
                         <span className="block h-2 w-2 rounded-full" style={{backgroundColor: entry.color}}></span>
                         <span className="text-neutral-600 dark:text-neutral-400">{entry.name}:</span>
                     </span>
@@ -55,12 +51,11 @@ interface Props {
   data: any[];
 }
 
-export default function ActivityChart({ data }: Props) {
-  const [showV1, setShowV1] = useState(false); // Legacy standardmäßig aus für cleaneren Look
+function ActivityChart({ data }: Props) {
+  const [showV1, setShowV1] = useState(false); 
   const [showV2, setShowV2] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
 
-  // Safety Check (unverändert)
   if (!data || !Array.isArray(data) || data.length === 0) {
     return (
       <Card className="w-full shadow-sm dark:bg-neutral-900 dark:border-neutral-800">
@@ -77,7 +72,6 @@ export default function ActivityChart({ data }: Props) {
   const sortedData = [...data].reverse();
 
   return (
-    // Card styling für Dark Mode angepasst
     <Card className="w-full shadow-sm transition-all dark:bg-neutral-900/50 backdrop-blur-sm dark:border-neutral-800 overflow-hidden">
       <CardHeader className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0 pb-6 border-b border-neutral-100 dark:border-neutral-800">
         <div>
@@ -90,7 +84,6 @@ export default function ActivityChart({ data }: Props) {
             </p>
         </div>
 
-        {/* Buttons (Optisch leicht angepasst) */}
         <div className="flex flex-wrap gap-2 bg-neutral-100 dark:bg-neutral-800/50 p-1 rounded-lg">
             <Button 
                 variant={showV2 ? "default" : "ghost"} size="sm" onClick={() => setShowV2(!showV2)}
@@ -118,41 +111,34 @@ export default function ActivityChart({ data }: Props) {
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={sortedData} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
               
-              {/* --- 2. DEFINITIONEN FÜR GLOW & GRADIENTS --- */}
               <defs>
-                {/* Verlauf für Bitcoin Area (Gelb zu Transparent) */}
                 <linearGradient id="btcGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#eab308" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
                 </linearGradient>
                 
-                {/* Verlauf für WAI Line Stroke (Optional, macht die Linie selbst interessanter) */}
                  <linearGradient id="waiGradient" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#f97316" />
                     <stop offset="100%" stopColor="#fb923c" />
                  </linearGradient>
 
-                {/* Neon Glow Filter (SVG Magie) */}
                 <filter id="neonGlow" height="200%" width="200%" x="-50%" y="-50%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" /> {/* Stärke des Blurs */}
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" /> 
                   <feMerge>
-                    <feMergeNode in="blur" /> {/* Der unscharfe Schein */}
-                    <feMergeNode in="SourceGraphic" /> {/* Die scharfe Linie darüber */}
+                    <feMergeNode in="blur" /> 
+                    <feMergeNode in="SourceGraphic" /> 
                   </feMerge>
                 </filter>
               </defs>
 
-              {/* Subtileres Grid */}
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-neutral-200/50 dark:text-neutral-800/50" />
               
-              {/* Referenzlinie bei 50 (Neutral) */}
               <ReferenceLine y={50} yAxisId="left" stroke="currentColor" strokeDasharray="3 3" className="text-neutral-300 dark:text-neutral-700" strokeWidth={1} opacity={0.5} label={{ value: "Neutral (50)", position: 'insideTopLeft', fill: '#888', fontSize: 10 }} />
 
-              {/* Achsen mit Monospace Font für Zahlen */}
               <XAxis 
                 dataKey="date" 
                 tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit'})}
-                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#94a3b8'}} // Helles Grau im Dark Mode
+                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#94a3b8'}} 
                 axisLine={false}
                 tickLine={false}
                 minTickGap={30}
@@ -162,39 +148,36 @@ export default function ActivityChart({ data }: Props) {
               <YAxis 
                 yAxisId="left" 
                 domain={[0, 100]} 
-                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#f97316'}} // Orange für WAI Achse
+                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#f97316'}} 
                 axisLine={false}
                 tickLine={false}
                 dx={-10}
-                // label={{ value: 'WAI Score', angle: -90, position: 'insideLeft', fill: '#f97316', fontSize: 12 }}
               />
 
               <YAxis 
                 yAxisId="right" 
                 orientation="right" 
                 domain={['auto', 'auto']}
-                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#eab308'}} // Gelb für Preis Achse
+                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#eab308'}} 
                 tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
                 axisLine={false}
                 tickLine={false}
                 dx={10}
               />
 
-              {/* Fadenkreuz Cursor und Custom Tooltip */}
               <Tooltip 
                 content={<CustomTooltip />}
                 cursor={{ stroke: 'currentColor', strokeWidth: 1, strokeDasharray: '3 3', className: 'text-neutral-400 dark:text-neutral-600' }}
                 wrapperStyle={{ outline: 'none' }}
               />
 
-              {/* Bitcoin Area mit Verlauf */}
               {showPrice && (
                   <Area
                     yAxisId="right"
                     type="monotone"
                     dataKey="btc_close"
                     name="Bitcoin Preis"
-                    fill="url(#btcGradient)" // Verweis auf den Gradient oben
+                    fill="url(#btcGradient)" 
                     stroke="#eab308"
                     strokeWidth={1.5}
                     fillOpacity={1}
@@ -203,7 +186,6 @@ export default function ActivityChart({ data }: Props) {
                   />
               )}
 
-               {/* Legacy Linie (Subtiler) */}
               {showV1 && (
                   <Line 
                     yAxisId="left"
@@ -220,16 +202,14 @@ export default function ActivityChart({ data }: Props) {
                   />
               )}
 
-              {/* DIE NEON LINIE (WAI v2) */}
               {showV2 && (
                   <Line 
                     yAxisId="left"
                     type="monotone" 
                     dataKey="wai" 
                     name="WAI v2 (Live)"
-                    // Hier wird der Neon-Filter angewendet
                     style={{ filter: 'url(#neonGlow)' }}
-                    stroke="url(#waiGradient)" // Verlauf auf der Linie selbst
+                    stroke="url(#waiGradient)" 
                     strokeWidth={3} 
                     dot={false}
                     activeDot={{ r: 6, stroke: '#f97316', strokeWidth: 2, fill: 'white' }}
@@ -244,3 +224,5 @@ export default function ActivityChart({ data }: Props) {
     </Card>
   );
 }
+
+export default memo(ActivityChart);

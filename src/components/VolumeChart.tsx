@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, memo } from "react"; // <--- MEMO IMPORT
 import { 
   BarChart, 
   Bar, 
@@ -9,12 +9,11 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Cell // Wichtig für den Hover-Effekt einzelner Balken
+  Cell 
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react"; 
 
-// --- MODERN TOOLTIP ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -39,8 +38,7 @@ interface Props {
   data: any;
 }
 
-export default function VolumeChart({ data }: Props) {
-  // State um den Hover-Index zu speichern
+function VolumeChart({ data }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   let chartData = [];
@@ -62,7 +60,6 @@ export default function VolumeChart({ data }: Props) {
       <CardContent className="pt-6">
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            {/* onMouseMove trackt, wo die Maus ist */}
             <BarChart 
                 data={sortedData} 
                 margin={{ top: 0, right: 0, left: -15, bottom: 0 }}
@@ -75,9 +72,7 @@ export default function VolumeChart({ data }: Props) {
                 }}
                 onMouseLeave={() => setActiveIndex(null)}
             >
-              
               <defs>
-                {/* Neuer VIOLETT Gradient */}
                 <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#a855f7" stopOpacity={1}/>
                   <stop offset="100%" stopColor="#a855f7" stopOpacity={0.2}/>
@@ -104,16 +99,16 @@ export default function VolumeChart({ data }: Props) {
               />
               
               <Tooltip 
-                cursor={{fill: 'transparent'}} // Standard Cursor ausblenden, wir nutzen den Hover-Effekt der Balken
+                cursor={{fill: 'transparent'}} 
                 content={<CustomTooltip />}
               />
               
-              <Bar dataKey="volume" animationDuration={1500} radius={[4, 4, 0, 0]}>
+              <Bar dataKey="volume" animationDuration={1000} radius={[4, 4, 0, 0]}>
                 {sortedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={index === activeIndex ? '#d8b4fe' : 'url(#purpleGradient)'} // Wenn Hover: Hell, sonst: Gradient
-                    style={{ transition: 'all 0.3s ease' }}
+                    fill={index === activeIndex ? '#d8b4fe' : 'url(#purpleGradient)'} 
+                    style={{ transition: 'all 0.2s ease' }} // Transition verkürzt für Performance
                     stroke={index === activeIndex ? '#fff' : 'none'}
                     strokeWidth={index === activeIndex ? 2 : 0}
                   />
@@ -127,3 +122,6 @@ export default function VolumeChart({ data }: Props) {
     </Card>
   );
 }
+
+// WICHTIG: Verhindert Re-Renders durch Parent Updates (z.B. Ticker)
+export default memo(VolumeChart);

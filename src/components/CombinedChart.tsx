@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"; // <--- MEMO IMPORT
 import { 
   ComposedChart, 
   Line, 
@@ -8,13 +9,11 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend
+  ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Layers } from "lucide-react"; // Icon für Combined/Layers
+import { Layers } from "lucide-react"; 
 
-// --- CUSTOM TOOLTIP ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -23,8 +22,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             {new Date(label).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
         </p>
         <div className="space-y-2">
-            
-            {/* WAI INDEX (Orange) */}
             <div className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-2 text-orange-500">
                     <span className="block h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316]"></span>
@@ -34,8 +31,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                     {payload.find((p: any) => p.dataKey === 'wai')?.value.toFixed(0)}
                 </span>
             </div>
-
-            {/* VOLUMEN (Blau) */}
             <div className="flex items-center justify-between gap-4">
                  <span className="flex items-center gap-2 text-blue-500">
                     <span className="block h-2 w-2 rounded-sm bg-blue-500"></span>
@@ -56,13 +51,12 @@ interface Props {
   data: any;
 }
 
-export default function CombinedChart({ data }: Props) {
+function CombinedChart({ data }: Props) {
   let chartData = [];
   if (Array.isArray(data)) chartData = data;
   else if (data && Array.isArray(data.items)) chartData = data.items;
   else if (data && Array.isArray(data.data)) chartData = data.data;
 
-  // Umdrehen (alt -> neu)
   const sortedData = [...chartData].reverse();
 
   return (
@@ -87,13 +81,11 @@ export default function CombinedChart({ data }: Props) {
             <ComposedChart data={sortedData} margin={{ top: 10, right: 0, left: -10, bottom: 0 }}>
               
               <defs>
-                {/* Verlauf für Volumen-Balken (Blau) */}
                 <linearGradient id="combinedVolGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6}/>
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
                 </linearGradient>
 
-                {/* Glow Filter für die WAI Linie */}
                 <filter id="glowCombined" height="200%" width="200%" x="-50%" y="-50%">
                   <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
                   <feMerge>
@@ -115,7 +107,6 @@ export default function CombinedChart({ data }: Props) {
                 dy={10}
               />
               
-              {/* Linke Y-Achse: WAI Index (0-100) */}
               <YAxis 
                 yAxisId="left" 
                 orientation="left" 
@@ -126,7 +117,6 @@ export default function CombinedChart({ data }: Props) {
                 label={{ value: 'WAI Index', angle: -90, position: 'insideLeft', fill: '#f97316', fontSize: 10, dx: 10 }}
               />
 
-              {/* Rechte Y-Achse: Volumen (BTC) */}
               <YAxis 
                 yAxisId="right" 
                 orientation="right" 
@@ -138,7 +128,6 @@ export default function CombinedChart({ data }: Props) {
 
               <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
               
-              {/* VOLUMEN BALKEN (Hintergrund) */}
               <Bar 
                 yAxisId="right"
                 dataKey="volume" 
@@ -148,7 +137,6 @@ export default function CombinedChart({ data }: Props) {
                 radius={[4, 4, 0, 0]}
               />
 
-              {/* WAI LINIE (Vordergrund, mit Glow) */}
               <Line 
                 yAxisId="left"
                 type="monotone" 
@@ -156,9 +144,9 @@ export default function CombinedChart({ data }: Props) {
                 name="WAI Index"
                 stroke="#f97316" 
                 strokeWidth={3} 
-                dot={false}
+                dot={false} // Performance Boost
                 activeDot={{ r: 6, fill: '#fff', stroke: '#f97316', strokeWidth: 2 }}
-                style={{ filter: 'url(#glowCombined)' }} // Neon Effekt
+                style={{ filter: 'url(#glowCombined)' }} 
                 animationDuration={1500}
               />
               
@@ -169,3 +157,5 @@ export default function CombinedChart({ data }: Props) {
     </Card>
   );
 }
+
+export default memo(CombinedChart);

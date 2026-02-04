@@ -1,12 +1,10 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import ActivityChart from "@/components/ActivityChart";
-import CombinedChart from "@/components/CombinedChart";
-import IntentChart from "@/components/IntentChart";
+import dynamic from "next/dynamic"; // <--- WICHTIG: Für Lazy Loading
 import PremiumWrapper from "@/components/PremiumWrapper"; 
 import FadeIn from "@/components/FadeIn"; 
-import NumberTicker from "@/components/NumberTicker"; // Dein neuer Ticker
+import NumberTicker from "@/components/NumberTicker"; 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +14,27 @@ import {
   Lock, LockOpen 
 } from "lucide-react";
 
+// --- DYNAMIC IMPORTS (LAZY LOADING) ---
+// Wir laden die schweren Charts erst, wenn der Client sie braucht.
+// ssr: false verhindert "Hydration Mismatch" Fehler bei Charts.
+// loading: Zeigt einen grauen Platzhalter (Skeleton), während der Chart lädt.
+
+const ActivityChart = dynamic(() => import("@/components/ActivityChart"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
+});
+
+const CombinedChart = dynamic(() => import("@/components/CombinedChart"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
+});
+
+const IntentChart = dynamic(() => import("@/components/IntentChart"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
+});
+
+
 export default function DashboardPage() {
   const [currentWai, setCurrentWai] = useState<any>(null);
   const [fullHistory, setFullHistory] = useState<any[]>([]);
@@ -24,8 +43,19 @@ export default function DashboardPage() {
   const [isPremium, setIsPremium] = useState(false); 
   const [btcData, setBtcData] = useState<{ price: number; change24h: number } | null>(null);
 
-  // ... (Hier deine useEffects unverändert lassen) ...
-  // 1. Historische Daten laden
+  // NEU: Steuert das verzögerte Laden der Charts für flüssigere Animationen
+  const [chartsReady, setChartsReady] = useState(false);
+
+  // 1. Staggered Loading Timer
+  useEffect(() => {
+    // Warte 500ms, bis die Seite komplett gerendert und animiert ist
+    const timer = setTimeout(() => {
+      setChartsReady(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Historische Daten laden
   useEffect(() => {
     async function loadData() {
       try {
@@ -43,7 +73,7 @@ export default function DashboardPage() {
     loadData();
   }, []); 
 
-  // 2. LIVE PREIS
+  // 3. LIVE PREIS
   useEffect(() => {
     const fetchTicker = async () => {
       try {
@@ -66,8 +96,8 @@ export default function DashboardPage() {
   if (isLoading) return <main className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></main>;
   if (error) return <main className="min-h-screen flex items-center justify-center text-red-500 bg-neutral-50 dark:bg-neutral-950">{error}</main>;
 
-  // Definiere die Hover-Klasse einmal zentral, damit wir sie überall nutzen können
-  const hoverEffect = "hover:scale-[1.02] hover:shadow-xl transition-all duration-300 ease-out cursor-default";
+  // Definiere die Hover-Klasse (inklusive gpu-accelerated für Performance)
+  const hoverEffect = "hover:scale-[1.02] hover:shadow-xl transition-all duration-300 ease-out cursor-default transform-gpu";
 
   return (
     <main className="min-h-screen bg-neutral-50/50 dark:bg-neutral-950 p-6 md:p-12 relative transition-colors duration-300">
@@ -86,7 +116,7 @@ export default function DashboardPage() {
 
       <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* HEADER (Unverändert) */}
+        {/* HEADER */}
         <FadeIn>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
                 <div className="flex items-center space-x-4">
@@ -122,7 +152,7 @@ export default function DashboardPage() {
             </div>
         </FadeIn>
 
-        {/* --- KPI KARTEN MIT HOVER EFFEKT --- */}
+        {/* --- KPI KARTEN --- */}
         <div className="space-y-6">
             <FadeIn delay={0.1}>
                 <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
@@ -208,16 +238,23 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        {/* --- CHARTS MIT HOVER EFFEKT --- */}
+        {/* --- CHARTS (Lazy Loaded & Staggered) --- */}
         <div className="grid gap-8 lg:grid-cols-2">
             
             <FadeIn direction="left" delay={0.2} className="h-full">
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">Intent & Flow Analyse</h3>
-                    {/* HIER DEN HOVER EFFEKT AUF DEN CONTAINER ANWENDEN */}
                     <div className={`relative rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}> 
                         <PremiumWrapper isPremium={isPremium} featureName="Erweiterte Chart-Analyse">
-                            {fullHistory.length > 0 ? <IntentChart data={fullHistory} /> : null}
+                            {/* CHECK: Daten da UND Wartezeit vorbei? */}
+                            {fullHistory.length > 0 && chartsReady ? (
+                                <IntentChart data={fullHistory} />
+                            ) : (
+                                // Platzhalter während der 500ms Wartezeit
+                                <div className="h-[400px] w-full bg-neutral-100 dark:bg-neutral-900/50 animate-pulse flex items-center justify-center">
+                                    <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
+                                </div>
+                            )}
                         </PremiumWrapper>
                     </div>
                 </div>
@@ -226,22 +263,34 @@ export default function DashboardPage() {
             <FadeIn direction="right" delay={0.2} className="h-full">
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">Markt-Kontext (WAI v2 vs Price)</h3>
-                    {/* UND HIER AUCH */}
                     <div className={`rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}>
-                        {fullHistory.length > 0 ? <ActivityChart data={fullHistory} /> : null}
+                        {/* CHECK */}
+                        {fullHistory.length > 0 && chartsReady ? (
+                            <ActivityChart data={fullHistory} />
+                        ) : (
+                            <div className="h-[400px] w-full bg-neutral-100 dark:bg-neutral-900/50 animate-pulse flex items-center justify-center">
+                                <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
+                            </div>
+                        )}
                     </div>
                 </div>
             </FadeIn>
 
         </div>
 
-        {/* --- VOLUME CHART MIT HOVER EFFEKT --- */}
+        {/* --- VOLUME CHART --- */}
         <FadeIn delay={0.3}>
             <div className="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
                 <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">On-Chain Volumen Historie</h3>
-                {/* UND HIER BEIM GROSSEN CHART */}
                 <div className={`rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}>
-                    {fullHistory.length > 0 && <CombinedChart data={fullHistory} />}
+                    {/* CHECK */}
+                    {fullHistory.length > 0 && chartsReady ? (
+                        <CombinedChart data={fullHistory} />
+                    ) : (
+                        <div className="h-[400px] w-full bg-neutral-100 dark:bg-neutral-900/50 animate-pulse flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
+                        </div>
+                    )}
                 </div>
             </div>
         </FadeIn>

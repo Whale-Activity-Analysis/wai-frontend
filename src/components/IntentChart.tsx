@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"; // <--- MEMO IMPORT
 import { 
   ComposedChart, 
   Line, 
@@ -8,7 +9,6 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  Legend, 
   ResponsiveContainer,
   ReferenceLine,
   Cell 
@@ -16,7 +16,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Signal } from "lucide-react";
 
-// --- CUSTOM TOOLTIP (Glas-Optik) ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -25,7 +24,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             {new Date(label).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
         </p>
         <div className="space-y-1.5">
-            {/* WII Score */}
             <div className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-2 text-indigo-500">
                     <span className="block h-2 w-2 rounded-full bg-indigo-500"></span>
@@ -35,7 +33,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                     {payload.find((p: any) => p.dataKey === 'wii')?.value.toFixed(0)}
                 </span>
             </div>
-            {/* Netflow */}
             <div className="flex items-center justify-between gap-4">
                  <span className="flex items-center gap-2 text-neutral-500">
                     <span className="block h-2 w-2 rounded-sm bg-neutral-500"></span>
@@ -56,14 +53,12 @@ interface Props {
   data: any[];
 }
 
-export default function IntentChart({ data }: Props) {
+function IntentChart({ data }: Props) {
   if (!data || data.length === 0) return null;
 
-  // Umdrehen, damit der Verlauf von links nach rechts geht
   const sortedData = [...data].reverse();
 
   return (
-    // HIER IST DAS UPGRADE: Gleiche Klassen wie beim rechten Chart
     <Card className="w-full shadow-sm transition-all dark:bg-neutral-900/50 backdrop-blur-sm dark:border-neutral-800 overflow-hidden">
       <CardHeader className="border-b border-neutral-100 dark:border-neutral-800 pb-4">
         <div className="flex items-center justify-between">
@@ -93,7 +88,6 @@ export default function IntentChart({ data }: Props) {
 
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-neutral-200/50 dark:text-neutral-800/30" />
               
-              {/* X-Achse (Datum) */}
               <XAxis 
                 dataKey="date" 
                 tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit'})}
@@ -104,17 +98,15 @@ export default function IntentChart({ data }: Props) {
                 dy={10}
               />
 
-              {/* Linke Y-Achse (WII Score 0-100) */}
               <YAxis 
                 yAxisId="left"
                 domain={[0, 100]}
-                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#6366f1'}} // Indigo
+                tick={{fontSize: 11, fontFamily: 'monospace', fill: '#6366f1'}}
                 axisLine={false}
                 tickLine={false}
                 label={{ value: 'WII Score', angle: -90, position: 'insideLeft', fill: '#6366f1', fontSize: 10, dx: 10 }}
               />
 
-              {/* Rechte Y-Achse (Netflow) */}
               <YAxis 
                 yAxisId="right"
                 orientation="right"
@@ -126,31 +118,28 @@ export default function IntentChart({ data }: Props) {
 
               <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
 
-              {/* Referenzlinien für Zonen */}
               <ReferenceLine y={75} yAxisId="left" stroke="#ef4444" strokeDasharray="3 3" opacity={0.5} label={{ value: "Distribution", fill: "#ef4444", fontSize: 10, position: 'insideBottomLeft' }} />
               <ReferenceLine y={25} yAxisId="left" stroke="#22c55e" strokeDasharray="3 3" opacity={0.5} label={{ value: "Accumulation", fill: "#22c55e", fontSize: 10, position: 'insideTopLeft' }} />
 
-              {/* BALKEN: Exchange Netflow */}
-              <Bar yAxisId="right" dataKey="exchange_netflow" radius={[2, 2, 0, 0]} maxBarSize={40}>
+              <Bar yAxisId="right" dataKey="exchange_netflow" radius={[2, 2, 0, 0]} maxBarSize={40} isAnimationActive={false}>
                 {sortedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    // Grün wenn negativ (Outflow), Rot wenn positiv (Inflow)
                     fill={entry.exchange_netflow < 0 ? '#22c55e' : '#ef4444'} 
                     opacity={0.8}
                   />
                 ))}
               </Bar>
 
-              {/* LINIE: Whale Intent Index (WII) */}
               <Line 
                 yAxisId="left"
                 type="monotone" 
                 dataKey="wii" 
-                stroke="#6366f1" // Indigo
+                stroke="#6366f1" 
                 strokeWidth={3}
-                dot={{ r: 4, fill: '#1e1b4b', strokeWidth: 2, stroke: '#6366f1' }}
-                activeDot={{ r: 6, fill: '#fff' }}
+                // PERFORMANCE: "dot={false}" statt fester Dots, rendert hunderte SVG Nodes weniger
+                dot={false} 
+                activeDot={{ r: 6, fill: '#fff', stroke: '#6366f1', strokeWidth: 2 }}
                 animationDuration={1000}
               />
 
@@ -161,3 +150,5 @@ export default function IntentChart({ data }: Props) {
     </Card>
   );
 }
+
+export default memo(IntentChart);
