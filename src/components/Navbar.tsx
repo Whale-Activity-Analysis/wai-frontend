@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Bitcoin, Menu, Sun, Moon } from "lucide-react";
+import { Bitcoin, Menu, Sun, Moon, Gamepad2 } from "lucide-react";
 import { useTheme } from "next-themes";
 
 export default function Navbar() {
@@ -73,6 +73,18 @@ export default function Navbar() {
                     Get Started
                 </Button>
             </Link>
+
+            <Link 
+  href="/snake" 
+  className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+    isActive("/snake") 
+      ? "bg-neutral-100 dark:bg-neutral-800 text-orange-500 font-medium" 
+      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+  }`}
+>
+  <Gamepad2 className="h-4 w-4" />
+  <span className="hidden md:inline">Play</span>
+</Link>
 
             {/* Mobile Menu Toggle (Platzhalter) */}
             <div className="md:hidden ml-2">
