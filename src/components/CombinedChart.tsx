@@ -1,6 +1,7 @@
 "use client"
 
-import { memo } from "react"; // <--- MEMO IMPORT
+import { memo } from "react";
+import { useTranslation } from "react-i18next"; // <--- Lokalisierung importiert
 import { 
   ComposedChart, 
   Line, 
@@ -14,12 +15,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layers } from "lucide-react"; 
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, t, i18n }: any) => {
   if (active && payload && payload.length) {
+    // Dynamisches Datum basierend auf Sprache
+    const dateStr = new Date(label).toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', { 
+      day: '2-digit', 
+      month: 'short' 
+    });
+
     return (
       <div className="bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3 rounded-xl shadow-xl text-sm z-50">
         <p className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-2 border-b border-neutral-200 dark:border-neutral-800 pb-1">
-            {new Date(label).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+            {dateStr}
         </p>
         <div className="space-y-2">
             <div className="flex items-center justify-between gap-4">
@@ -34,7 +41,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div className="flex items-center justify-between gap-4">
                  <span className="flex items-center gap-2 text-blue-500">
                     <span className="block h-2 w-2 rounded-sm bg-blue-500"></span>
-                    Volumen:
+                    {String(t('volume_label', 'Volumen'))}:
                 </span>
                 <span className="font-bold tabular-nums text-neutral-700 dark:text-neutral-300">
                     {Math.round(payload.find((p: any) => p.dataKey === 'volume')?.value).toLocaleString()} <span className="text-xs font-normal text-neutral-500">BTC</span>
@@ -52,6 +59,8 @@ interface Props {
 }
 
 function CombinedChart({ data }: Props) {
+  const { t, i18n } = useTranslation(); // Hook initialisiert
+
   let chartData = [];
   if (Array.isArray(data)) chartData = data;
   else if (data && Array.isArray(data.items)) chartData = data.items;
@@ -66,10 +75,10 @@ function CombinedChart({ data }: Props) {
             <div>
                 <CardTitle className="flex items-center gap-2">
                     <Layers className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-                    Markt-Analyse (Index vs. Volumen)
+                    {String(t('volume_chart_title', 'Markt-Analyse (Index vs. Volumen)'))}
                 </CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                    Korrelation zwischen Wal-Aktivität (Linie) und Volumen (Balken).
+                    {String(t('volume_chart_subtitle', 'Korrelation zwischen Wal-Aktivität (Linie) und Volumen (Balken).'))}
                 </p>
             </div>
         </div>
@@ -99,7 +108,7 @@ function CombinedChart({ data }: Props) {
               
               <XAxis 
                 dataKey="date" 
-                tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit'})}
+                tickFormatter={(str) => new Date(str).toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', {day: '2-digit', month: '2-digit'})}
                 scale="band" 
                 tick={{fontSize: 11, fontFamily: 'monospace', fill: '#94a3b8'}}
                 axisLine={false}
@@ -114,7 +123,14 @@ function CombinedChart({ data }: Props) {
                 tick={{fontSize: 11, fontFamily: 'monospace', fill: '#f97316'}}
                 axisLine={false}
                 tickLine={false}
-                label={{ value: 'WAI Index', angle: -90, position: 'insideLeft', fill: '#f97316', fontSize: 10, dx: 10 }}
+                label={{ 
+                  value: 'WAI Index', 
+                  angle: -90, 
+                  position: 'insideLeft', 
+                  fill: '#f97316', 
+                  fontSize: 10, 
+                  dx: 10 
+                }}
               />
 
               <YAxis 
@@ -126,12 +142,15 @@ function CombinedChart({ data }: Props) {
                 tickLine={false}
               />
 
-              <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
+              <Tooltip 
+                content={<CustomTooltip t={t} i18n={i18n} />} 
+                cursor={{fill: 'transparent'}} 
+              />
               
               <Bar 
                 yAxisId="right"
                 dataKey="volume" 
-                name="Volumen (BTC)" 
+                name={String(t('volume_label', 'Volumen (BTC)'))} 
                 fill="url(#combinedVolGradient)" 
                 barSize={20}
                 radius={[4, 4, 0, 0]}
@@ -144,7 +163,7 @@ function CombinedChart({ data }: Props) {
                 name="WAI Index"
                 stroke="#f97316" 
                 strokeWidth={3} 
-                dot={false} // Performance Boost
+                dot={false} 
                 activeDot={{ r: 6, fill: '#fff', stroke: '#f97316', strokeWidth: 2 }}
                 style={{ filter: 'url(#glowCombined)' }} 
                 animationDuration={1500}

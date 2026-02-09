@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next"; // Lokalisierung importiert
 import { Button } from "@/components/ui/button";
 import { Bitcoin, Loader2, Github, Mail, CheckCircle2 } from "lucide-react";
 import FadeIn from "@/components/FadeIn";
 
 export default function RegisterPage() {
+  const { t } = useTranslation(); // Hook initialisiert
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,9 +34,11 @@ export default function RegisterPage() {
           
           <FadeIn delay={0.1}>
             <div className="grid gap-2 text-center">
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Konto erstellen</h1>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                {String(t('create_account', 'Konto erstellen'))}
+              </h1>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Starten Sie Ihre 14-tägige kostenlose Testphase.
+                {String(t('trial_subtitle', 'Starten Sie Ihre 14-tägige kostenlose Testphase.'))}
               </p>
             </div>
           </FadeIn>
@@ -45,7 +49,7 @@ export default function RegisterPage() {
               {/* Name Input */}
               <div className="grid gap-2">
                 <label htmlFor="name" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Vollständiger Name
+                    {String(t('full_name_label', 'Vollständiger Name'))}
                 </label>
                 <input
                   id="name"
@@ -59,7 +63,7 @@ export default function RegisterPage() {
               {/* Email Input */}
               <div className="grid gap-2">
                 <label htmlFor="email" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Email
+                    {String(t('email_label', 'Email'))}
                 </label>
                 <input
                   id="email"
@@ -73,7 +77,7 @@ export default function RegisterPage() {
               {/* Password Input */}
               <div className="grid gap-2">
                 <label htmlFor="password" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Passwort
+                  {String(t('password_label', 'Passwort'))}
                 </label>
                 <input
                   id="password"
@@ -92,22 +96,22 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Erstelle Account...
+                    {String(t('creating_account', 'Erstelle Account...'))}
                   </>
                 ) : (
-                  "Kostenlos registrieren"
+                  String(t('register_free_button', 'Kostenlos registrieren'))
                 )}
               </Button>
 
               {/* Terms Text */}
               <p className="px-8 text-center text-xs text-neutral-500 dark:text-neutral-400">
-                Mit der Registrierung akzeptieren Sie unsere{" "}
+                {String(t('register_terms_start', 'Mit der Registrierung akzeptieren Sie unsere'))}{" "}
                 <Link href="/dataprotection" className="underline underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-200">
-                  Datenschutzrichtlinien
+                  {String(t('privacy_policy_title', 'Datenschutzrichtlinien'))}
                 </Link>{" "}
-                und{" "}
+                {String(t('and', 'und'))}{" "}
                 <Link href="/imprint" className="underline underline-offset-4 hover:text-neutral-900 dark:hover:text-neutral-200">
-                  AGB
+                  {String(t('tos', 'AGB'))}
                 </Link>
                 .
               </p>
@@ -119,7 +123,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-neutral-950 px-2 text-neutral-500">
-                    Oder weiter mit
+                    {String(t('or_continue_with', 'Oder weiter mit'))}
                   </span>
                 </div>
               </div>
@@ -139,9 +143,9 @@ export default function RegisterPage() {
 
           <FadeIn delay={0.3}>
             <div className="mt-2 text-center text-sm">
-              Bereits einen Account?{" "}
+              {String(t('already_have_account', 'Bereits einen Account?'))}{" "}
               <Link href="/login" className="underline text-orange-600 hover:text-orange-500 dark:text-orange-500">
-                Hier einloggen
+                {String(t('login_here_link', 'Hier einloggen'))}
               </Link>
             </div>
           </FadeIn>
@@ -157,25 +161,25 @@ export default function RegisterPage() {
             <div className="relative z-10 max-w-md space-y-8">
                 <div>
                     <h3 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
-                        Warum WAI Pro?
+                        {String(t('why_wai_pro', 'Warum WAI Pro?'))}
                     </h3>
                     <ul className="space-y-4">
                         <li className="flex items-start gap-3">
                             <CheckCircle2 className="h-6 w-6 text-orange-500 shrink-0" />
                             <span className="text-neutral-600 dark:text-neutral-300">
-                                <strong>Echtzeit Wal-Daten:</strong> Keine Verzögerung bei großen Transaktionen.
+                                <strong>{String(t('benefit_1_title', 'Echtzeit Wal-Daten:'))}</strong> {String(t('benefit_1_desc', 'Keine Verzögerung bei großen Transaktionen.'))}
                             </span>
                         </li>
                         <li className="flex items-start gap-3">
                             <CheckCircle2 className="h-6 w-6 text-orange-500 shrink-0" />
                             <span className="text-neutral-600 dark:text-neutral-300">
-                                <strong>Smart Alerts:</strong> Push-Nachrichten bei Akkumulation oder Abverkauf.
+                                <strong>{String(t('benefit_2_title', 'Smart Alerts:'))}</strong> {String(t('benefit_2_desc', 'Push-Nachrichten bei Akkumulation oder Abverkauf.'))}
                             </span>
                         </li>
                         <li className="flex items-start gap-3">
                             <CheckCircle2 className="h-6 w-6 text-orange-500 shrink-0" />
                             <span className="text-neutral-600 dark:text-neutral-300">
-                                <strong>API Zugang:</strong> Integriere unsere Daten direkt in deine Trading-Bots.
+                                <strong>{String(t('benefit_3_title', 'API Zugang:'))}</strong> {String(t('benefit_3_desc', 'Integriere unsere Daten direkt in deine Trading-Bots.'))}
                             </span>
                         </li>
                     </ul>
@@ -183,7 +187,7 @@ export default function RegisterPage() {
 
                 <div className="p-4 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700">
                     <p className="text-sm text-neutral-500 dark:text-neutral-400 italic">
-                        "Die beste Investition für mein Trading-Setup dieses Jahr. Die Datenqualität ist unschlagbar."
+                        &ldquo;{String(t('register_testimonial_text', 'Die beste Investition für mein Trading-Setup dieses Jahr. Die Datenqualität ist unschlagbar.'))}&rdquo;
                     </p>
                     <div className="mt-2 text-xs font-bold text-neutral-900 dark:text-white">
                         — Thomas K., Pro Trader
