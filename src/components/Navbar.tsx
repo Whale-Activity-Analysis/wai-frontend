@@ -48,9 +48,6 @@ export default function Navbar() {
             <Link href="/dashboard" className={isActive("/dashboard")}>
               {t('nav_dashboard')}
             </Link>
-            <Link href="/ai-analysis" className={isActive("/ai-analysis")}>
-              {t('nav_analysis')}
-            </Link>
             <Link href="/pricing" className={isActive("/pricing")}>
               {t('nav_pricing')}
             </Link>
@@ -104,19 +101,6 @@ export default function Navbar() {
                     {t('get_started')}
                 </Button>
             </Link>
-
-            <Link 
-              href="/snake" 
-              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                isActive("/snake") 
-                  ? "bg-neutral-100 dark:bg-neutral-800 text-orange-500 font-medium" 
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <Gamepad2 className="h-4 w-4" />
-              <span className="hidden md:inline">{t('play')}</span>
-            </Link>
-
             {/* Mobile Menu Toggle */}
             <div className="md:hidden ml-2">
                  <Button variant="ghost" size="icon">
