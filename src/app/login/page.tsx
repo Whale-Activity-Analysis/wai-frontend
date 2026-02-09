@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next"; // Lokalisierung importiert
 import { Button } from "@/components/ui/button";
-import { Bitcoin, Loader2, ArrowRight, Github, Mail } from "lucide-react";
+import { Bitcoin, Loader2, Github, Mail } from "lucide-react";
 import FadeIn from "@/components/FadeIn"; 
 
 export default function LoginPage() {
+  const { t } = useTranslation(); // Hook initialisiert
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,8 +25,6 @@ export default function LoginPage() {
   }
 
   return (
-    // FIX: "lg:min-h-[600px]" und "xl:min-h-[800px]" entfernt.
-    // Stattdessen "h-full", damit es sich einfach in den Layout-Container einpasst.
     <div className="w-full h-full lg:grid lg:grid-cols-2 bg-white dark:bg-neutral-950 transition-colors duration-300">
       
       {/* LINKE SEITE: Formular */}
@@ -33,9 +33,11 @@ export default function LoginPage() {
           
           <FadeIn delay={0.1}>
             <div className="grid gap-2 text-center">
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Willkommen zurück</h1>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                {String(t('welcome_back', 'Willkommen zurück'))}
+              </h1>
               <p className="text-neutral-500 dark:text-neutral-400">
-                Gib deine E-Mail ein, um dich anzumelden.
+                {String(t('login_subtitle', 'Gib deine E-Mail ein, um dich anzumelden.'))}
               </p>
             </div>
           </FadeIn>
@@ -45,7 +47,7 @@ export default function LoginPage() {
               
               <div className="grid gap-2">
                 <label htmlFor="email" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Email
+                    {String(t('email_label', 'Email'))}
                 </label>
                 <input
                   id="email"
@@ -59,13 +61,13 @@ export default function LoginPage() {
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Passwort
+                    {String(t('password_label', 'Passwort'))}
                   </label>
                   <Link
                     href="/forgot-password"
                     className="text-sm font-medium text-orange-600 hover:text-orange-500 dark:text-orange-500 underline-offset-4 hover:underline"
                   >
-                    Vergessen?
+                    {String(t('forgot_password', 'Vergessen?'))}
                   </Link>
                 </div>
                 <input
@@ -84,10 +86,10 @@ export default function LoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Anmelden...
+                    {String(t('signing_in', 'Anmelden...'))}
                   </>
                 ) : (
-                  "Login"
+                  String(t('login_button', 'Login'))
                 )}
               </Button>
 
@@ -97,7 +99,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-neutral-950 px-2 text-neutral-500">
-                    Oder weiter mit
+                    {String(t('or_continue_with', 'Oder weiter mit'))}
                   </span>
                 </div>
               </div>
@@ -116,9 +118,9 @@ export default function LoginPage() {
 
           <FadeIn delay={0.3}>
             <div className="mt-4 text-center text-sm">
-              Noch keinen Account?{" "}
+              {String(t('no_account_text', 'Noch keinen Account?'))}{" "}
               <Link href="/register" className="underline text-orange-600 hover:text-orange-500 dark:text-orange-500">
-                Jetzt registrieren
+                {String(t('register_now_link', 'Jetzt registrieren'))}
               </Link>
             </div>
           </FadeIn>
@@ -126,7 +128,6 @@ export default function LoginPage() {
       </div>
 
       {/* RECHTE SEITE: Visual / Trust */}
-      {/* h-auto sorgt dafür, dass es sich der Höhe der linken Seite anpasst */}
       <div className="hidden bg-neutral-100 dark:bg-neutral-900 lg:flex h-auto flex-col justify-center items-center p-12 border-l border-neutral-200 dark:border-neutral-800 relative overflow-hidden">
         
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light"></div>
@@ -139,13 +140,13 @@ export default function LoginPage() {
                 
                 <blockquote className="space-y-6">
                     <p className="text-2xl font-medium leading-relaxed text-neutral-900 dark:text-white">
-                    &ldquo;Seit wir den WAI nutzen, konnten wir Akkumulationsphasen 3 Tage früher erkennen als mit herkömmlichen Indikatoren.&rdquo;
+                    &ldquo;{String(t('testimonial_quote', 'Seit wir den WAI nutzen, konnten wir Akkumulationsphasen 3 Tage früher erkennen als mit herkömmlichen Indikatoren.'))}&rdquo;
                     </p>
                     <footer className="flex items-center gap-4">
                         <div className="h-10 w-10 rounded-full bg-neutral-300 dark:bg-neutral-700"></div>
                         <div>
-                            <div className="font-semibold text-neutral-900 dark:text-white">Alex M.</div>
-                            <div className="text-sm text-neutral-500 dark:text-neutral-400">Institutional Trader</div>
+                            <div className="font-semibold text-neutral-900 dark:text-white">Alex S.</div>
+                            <div className="text-sm text-neutral-500 dark:text-neutral-400">Professional Jobless</div>
                         </div>
                     </footer>
                 </blockquote>

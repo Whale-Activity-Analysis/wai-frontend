@@ -1,6 +1,7 @@
 "use client"
 
-import { memo } from "react"; // <--- MEMO IMPORT
+import { memo } from "react";
+import { useTranslation } from "react-i18next"; // <--- Lokalisierung importiert
 import { 
   ComposedChart, 
   Line, 
@@ -16,12 +17,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Signal } from "lucide-react";
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, t, i18n }: any) => {
   if (active && payload && payload.length) {
+    // Dynamisches Datum basierend auf der Sprache
+    const dateStr = new Date(label).toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', { 
+        day: '2-digit', 
+        month: 'short' 
+    });
+
     return (
       <div className="bg-white/90 dark:bg-neutral-950/90 backdrop-blur-md border border-neutral-200 dark:border-neutral-800 p-3 rounded-xl shadow-xl text-sm z-50">
         <p className="font-mono text-xs text-neutral-500 dark:text-neutral-400 mb-2 border-b border-neutral-200 dark:border-neutral-800 pb-1">
-            {new Date(label).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+            {dateStr}
         </p>
         <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-4">
@@ -54,6 +61,8 @@ interface Props {
 }
 
 function IntentChart({ data }: Props) {
+  const { t, i18n } = useTranslation(); // Hook initialisiert
+
   if (!data || data.length === 0) return null;
 
   const sortedData = [...data].reverse();
@@ -65,10 +74,10 @@ function IntentChart({ data }: Props) {
             <div>
                 <CardTitle className="flex items-center gap-2">
                     <Signal className="h-5 w-5 text-indigo-500" />
-                    Whale Intent & Exchange Netflow
+                    {String(t('intent_chart_title', 'Whale Intent & Exchange Netflow'))}
                 </CardTitle>
                 <CardDescription className="mt-1">
-                   Netflow &lt; 0 (Grün) = Akkumulation | Netflow &gt; 0 (Rot) = Distribution
+                   {String(t('intent_chart_desc', 'Netflow < 0 (Grün) = Akkumulation | Netflow > 0 (Rot) = Distribution'))}
                 </CardDescription>
             </div>
         </div>
@@ -90,7 +99,7 @@ function IntentChart({ data }: Props) {
               
               <XAxis 
                 dataKey="date" 
-                tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, {day: '2-digit', month: '2-digit'})}
+                tickFormatter={(str) => new Date(str).toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', {day: '2-digit', month: '2-digit'})}
                 tick={{fontSize: 11, fontFamily: 'monospace', fill: '#94a3b8'}}
                 axisLine={false}
                 tickLine={false}
@@ -116,10 +125,38 @@ function IntentChart({ data }: Props) {
                 tickLine={false}
               />
 
-              <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
+              <Tooltip 
+                content={<CustomTooltip t={t} i18n={i18n} />} 
+                cursor={{fill: 'transparent'}} 
+              />
 
-              <ReferenceLine y={75} yAxisId="left" stroke="#ef4444" strokeDasharray="3 3" opacity={0.5} label={{ value: "Distribution", fill: "#ef4444", fontSize: 10, position: 'insideBottomLeft' }} />
-              <ReferenceLine y={25} yAxisId="left" stroke="#22c55e" strokeDasharray="3 3" opacity={0.5} label={{ value: "Accumulation", fill: "#22c55e", fontSize: 10, position: 'insideTopLeft' }} />
+              {/* Lokalisierte Referenzlinien */}
+              <ReferenceLine 
+                y={75} 
+                yAxisId="left" 
+                stroke="#ef4444" 
+                strokeDasharray="3 3" 
+                opacity={0.5} 
+                label={{ 
+                    value: String(t('signal_selling_pressure', 'Distribution')), 
+                    fill: "#ef4444", 
+                    fontSize: 10, 
+                    position: 'insideBottomLeft' 
+                }} 
+              />
+              <ReferenceLine 
+                y={25} 
+                yAxisId="left" 
+                stroke="#22c55e" 
+                strokeDasharray="3 3" 
+                opacity={0.5} 
+                label={{ 
+                    value: String(t('signal_accumulation', 'Accumulation')), 
+                    fill: "#22c55e", 
+                    fontSize: 10, 
+                    position: 'insideTopLeft' 
+                }} 
+              />
 
               <Bar yAxisId="right" dataKey="exchange_netflow" radius={[2, 2, 0, 0]} maxBarSize={40} isAnimationActive={false}>
                 {sortedData.map((entry, index) => (
@@ -137,7 +174,6 @@ function IntentChart({ data }: Props) {
                 dataKey="wii" 
                 stroke="#6366f1" 
                 strokeWidth={3}
-                // PERFORMANCE: "dot={false}" statt fester Dots, rendert hunderte SVG Nodes weniger
                 dot={false} 
                 activeDot={{ r: 6, fill: '#fff', stroke: '#6366f1', strokeWidth: 2 }}
                 animationDuration={1000}

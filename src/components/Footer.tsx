@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslation } from "react-i18next"; // Lokalisierung importiert
 
 export default function Footer() {
+  const { t } = useTranslation(); // Hook initialisiert
+
   return (
     <footer className="bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 py-12 transition-colors duration-300 mt-auto">
       <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-neutral-500 dark:text-neutral-400 text-sm">
@@ -15,9 +18,15 @@ export default function Footer() {
         
         {/* Links */}
         <div className="flex gap-6 flex-wrap justify-center">
-          <Link href="/dataprotection" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Datenschutz</Link>
-          <Link href="/imprint" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Impressum</Link>
-          <Link href="/pricing" className="hover:text-neutral-900 dark:hover:text-white transition-colors">Preise</Link>
+          <Link href="/dataprotection" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+            {String(t('privacy_policy_title', 'Datenschutz'))}
+          </Link>
+          <Link href="/imprint" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+            {String(t('imprint_title', 'Impressum'))}
+          </Link>
+          <Link href="/pricing" className="hover:text-neutral-900 dark:hover:text-white transition-colors">
+            {String(t('nav_pricing', 'Preise'))}
+          </Link>
           <Link 
             href="https://github.com/Whale-Activity-Analysis/wai-frontend" 
             target="_blank" 
@@ -30,7 +39,7 @@ export default function Footer() {
         
         {/* Copyright */}
         <div className="mt-4 md:mt-0">
-          &copy; 2026 WAI Project. All rights reserved.
+          &copy; 2026 WAI Project. {String(t('footer_rights', 'All rights reserved.'))}
         </div>
       </div>
     </footer>

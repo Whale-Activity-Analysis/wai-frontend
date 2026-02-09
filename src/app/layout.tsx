@@ -1,41 +1,42 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar"; 
-import Footer from "@/components/Footer"; // <--- 1. IMPORTIEREN
+import "@/lib/i18n"; // Initialisierung der Lokalisierung
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer"; // <--- Import hinzugefügt
 import { ThemeProvider } from "@/components/Theme-Provider";
+import { useTranslation } from "react-i18next";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Whale Activity Index",
-  description: "Dashboard für Wal-Aktivitäten",
-};
-
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return (
-    <html lang="de" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen flex flex-col`}> {/* flex-col + min-h-screen für Sticky Footer */}
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-        >
-          <Navbar /> 
-          
-          {/* Der Hauptinhalt der Seite */}
-          <div className="flex-1">
-             {children}
-          </div>
+}) {
+  const { i18n } = useTranslation();
 
-          {/* 2. HIER EINFÜGEN: Erscheint jetzt auf jeder Seite */}
-          <Footer /> 
-          
+  return (
+    <html lang={i18n.language} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {/* flex-col und min-h-screen sorgen dafür, dass der Footer unten bleibt */}
+          <div className="relative min-h-screen flex flex-col">
+            <Navbar />
+            
+            {/* flex-1 dehnt den Inhalt aus, damit der Footer nach unten gedrückt wird */}
+            <main className="flex-1">
+              {children}
+            </main>
+
+            <Footer /> {/* <--- Footer hier eingebunden */}
+          </div>
         </ThemeProvider>
       </body>
     </html>
