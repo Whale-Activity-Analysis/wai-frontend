@@ -65,69 +65,94 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* --- FEATURES GRID --- */}
-        <section id="features" className="py-20 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 transition-colors duration-300">
-          <div className="container mx-auto px-4">
-            
-            <FadeIn>
-                <div className="text-center max-w-2xl mx-auto mb-16">
-                <h2 className="text-3xl font-bold text-neutral-900 dark:text-white mb-4">
-                    {String(t('features_title', 'Professionelle On-Chain Matrix'))}
-                </h2>
-                <p className="text-neutral-500 dark:text-neutral-400">
-                    {String(t('features_subtitle', 'Wir kombinieren Lautstärke (Activity) mit Richtung (Intent) für präzise Markt-Signale.'))}
-                </p>
-                </div>
-            </FadeIn>
+        {/* --- FEATURES SECTION WITH LEFT TIMELINE --- */}
+<section id="features" className="py-24 bg-neutral-50 dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 transition-colors duration-300">
+  <div className="container mx-auto px-4">
+    
+    <FadeIn>
+      <div className="max-w-4xl mx-auto mb-20">
+        <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
+          {String(t('features_title', 'Professionelle On-Chain Matrix'))}
+        </h2>
+        <p className="text-neutral-500 dark:text-neutral-400 text-lg">
+          {String(t('features_subtitle', 'Drei Schritte zur präzisen Markt-Analyse.'))}
+        </p>
+      </div>
+    </FadeIn>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <FadeIn delay={0.2} className="h-full">
-                <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all h-full">
-                    <div className="h-12 w-12 bg-blue-100 dark:bg-blue-500/10 rounded-lg flex items-center justify-center mb-6">
-                    <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
-                        {String(t('feature_1_title', 'WAI Index'))}
-                    </h3>
-                    <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                        {String(t('feature_1_desc', 'Unser Kern-Algorithmus misst die reine Aktivität der größten Wallets. Ein Sentiment-Indikator (0-100) für Marktvolatilität.'))}
-                    </p>
-                </div>
-              </FadeIn>
+    {/* Timeline Container */}
+    <div className="relative max-w-4xl mx-auto pl-8 md:pl-12">
+      
+      {/* Der vertikale Zeitstrahl auf der linken Seite */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-200 dark:bg-neutral-800 rounded-full">
+        {/* Mitlaufender oranger Balken (optional mit Framer Motion scaleY) */}
+        <div className="absolute top-0 left-0 w-full bg-orange-500 rounded-full h-full origin-top transition-transform duration-700" />
+      </div>
 
-              {/* Feature 2 */}
-              <FadeIn delay={0.4} className="h-full">
-                <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all h-full">
-                    <div className="h-12 w-12 bg-green-100 dark:bg-green-500/10 rounded-lg flex items-center justify-center mb-6">
-                    <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
-                        {String(t('feature_2_title', 'Intent & Flows'))}
-                    </h3>
-                    <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                        {String(t('feature_2_desc', 'Wohin fließt das Geld? Wir tracken Exchange Inflows (Verkaufsdruck) und Outflows (Akkumulation) in Echtzeit.'))}
-                    </p>
-                </div>
-              </FadeIn>
-
-              {/* Feature 3 */}
-              <FadeIn delay={0.6} className="h-full">
-                <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all h-full">
-                    <div className="h-12 w-12 bg-purple-100 dark:bg-purple-500/10 rounded-lg flex items-center justify-center mb-6">
-                    <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
-                        {String(t('feature_3_title', 'Live Signale'))}
-                    </h3>
-                    <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
-                        {String(t('feature_3_desc', 'Erhalte klare "Accumulation" oder "Distribution" Signale basierend auf unserer neuen Matrix-Logik.'))}
-                    </p>
-                </div>
-              </FadeIn>
+      <div className="space-y-24">
+        
+        {/* Feature 1 */}
+        <div className="relative">
+          {/* Beweglicher Kreis / Pointer */}
+          <div className="absolute -left-[37px] md:-left-[53px] top-8 w-6 h-6 bg-orange-500 rounded-full border-4 border-white dark:border-neutral-950 shadow-[0_0_15px_rgba(249,115,22,0.6)] z-20" />
+          
+          <FadeIn direction="right" delay={0.1}>
+            <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all">
+              <div className="h-12 w-12 bg-blue-100 dark:bg-blue-500/10 rounded-lg flex items-center justify-center mb-6">
+                <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
+                {String(t('feature_1_title', 'WAI Index'))}
+              </h3>
+              <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                {String(t('feature_1_desc', 'Unser Kern-Algorithmus misst die reine Aktivität der größten Wallets. Ein Sentiment-Indikator (0-100) für Marktvolatilität.'))}
+              </p>
             </div>
-          </div>
-        </section>
+          </FadeIn>
+        </div>
+
+        {/* Feature 2 */}
+        <div className="relative">
+          <div className="absolute -left-[37px] md:-left-[53px] top-8 w-6 h-6 bg-orange-500 rounded-full border-4 border-white dark:border-neutral-950 shadow-[0_0_15px_rgba(249,115,22,0.6)] z-20" />
+          
+          <FadeIn direction="right" delay={0.2}>
+            <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all">
+              <div className="h-12 w-12 bg-green-100 dark:bg-green-500/10 rounded-lg flex items-center justify-center mb-6">
+                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
+                {String(t('feature_2_title', 'Intent & Flows'))}
+              </h3>
+              <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                {String(t('feature_2_desc', 'Wohin fließt das Geld? Wir tracken Exchange Inflows (Verkaufsdruck) und Outflows (Akkumulation) in Echtzeit.'))}
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+
+        {/* Feature 3 */}
+        <div className="relative">
+          <div className="absolute -left-[37px] md:-left-[53px] top-8 w-6 h-6 bg-orange-500 rounded-full border-4 border-white dark:border-neutral-950 shadow-[0_0_15px_rgba(249,115,22,0.6)] z-20" />
+          
+          <FadeIn direction="right" delay={0.3}>
+            <div className="bg-white dark:bg-neutral-900 p-8 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-800 hover:shadow-md transition-all">
+              <div className="h-12 w-12 bg-purple-100 dark:bg-purple-500/10 rounded-lg flex items-center justify-center mb-6">
+                <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">
+                {String(t('feature_3_title', 'Live Signale'))}
+              </h3>
+              <p className="text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                {String(t('feature_3_desc', 'Erhalte klare "Accumulation" oder "Distribution" Signale basierend auf unserer neuen Matrix-Logik.'))}
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
         
         {/* --- CTA SECTION --- */}
         <section className="py-20 bg-neutral-900 dark:bg-neutral-900 text-white border-t border-transparent dark:border-neutral-800">
