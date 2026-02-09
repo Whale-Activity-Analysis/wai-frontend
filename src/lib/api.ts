@@ -43,3 +43,28 @@ export async function fetchWaiHistory() {
     return []; 
   }
 }
+  // src/lib/api.ts
+
+// ... (API_URL Definition und andere Funktionen)
+
+// NEU: Validierungs-Statistiken (Backtest)
+export async function fetchValidationStats() {
+  const url = `${API_URL}/api/wai/validation`;
+  
+  try {
+    const res = await fetch(url, { 
+      cache: 'no-store',
+      signal: AbortSignal.timeout(5000)
+    });
+
+    if (!res.ok) {
+      throw new Error(`Status: ${res.status}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`❌ FEHLER bei fetchValidationStats:`, error);
+    return null; // Return null bei Fehler, damit wir im UI "Keine Daten" anzeigen können
+  }
+}
+
+

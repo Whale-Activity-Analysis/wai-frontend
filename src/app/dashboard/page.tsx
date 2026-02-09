@@ -1,24 +1,23 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic"; // <--- WICHTIG: Für Lazy Loading
+import dynamic from "next/dynamic"; 
 import PremiumWrapper from "@/components/PremiumWrapper"; 
 import FadeIn from "@/components/FadeIn"; 
 import NumberTicker from "@/components/NumberTicker"; 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { fetchLatestWai, fetchWaiHistory } from "@/lib/api";
+
+// --- NEUE IMPORTS ---
+import ValidationStats from "@/components/ValidationStats"; // <--- NEU
+import { fetchLatestWai, fetchWaiHistory, fetchValidationStats } from "@/lib/api"; // <--- NEU: fetchValidationStats
 import { 
   Bitcoin, TrendingUp, Activity, Loader2, ArrowRightLeft, Signal, LineChart, 
-  Lock, LockOpen 
+  Lock, LockOpen, Target // <--- NEU: Target Icon
 } from "lucide-react";
 
-// --- DYNAMIC IMPORTS (LAZY LOADING) ---
-// Wir laden die schweren Charts erst, wenn der Client sie braucht.
-// ssr: false verhindert "Hydration Mismatch" Fehler bei Charts.
-// loading: Zeigt einen grauen Platzhalter (Skeleton), während der Chart lädt.
-
+// --- DYNAMIC IMPORTS ---
 const ActivityChart = dynamic(() => import("@/components/ActivityChart"), { 
   ssr: false,
   loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
@@ -38,37 +37,45 @@ const IntentChart = dynamic(() => import("@/components/IntentChart"), {
 export default function DashboardPage() {
   const [currentWai, setCurrentWai] = useState<any>(null);
   const [fullHistory, setFullHistory] = useState<any[]>([]);
+  const [validationData, setValidationData] = useState<any>(null); // <--- NEU: State für Validation
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false); 
   const [btcData, setBtcData] = useState<{ price: number; change24h: number } | null>(null);
-
-  // NEU: Steuert das verzögerte Laden der Charts für flüssigere Animationen
   const [chartsReady, setChartsReady] = useState(false);
 
   // 1. Staggered Loading Timer
   useEffect(() => {
-    // Warte 500ms, bis die Seite komplett gerendert und animiert ist
     const timer = setTimeout(() => {
       setChartsReady(true);
     }, 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Historische Daten laden
+  // 2. Historische Daten laden (INKL. VALIDATION)
   useEffect(() => {
     async function loadData() {
       try {
-        const [latestData, historyResponse] = await Promise.all([
+        // JETZT 3 AUFRUFE PARALLEL
+        const [latestData, historyResponse, validationResponse] = await Promise.all([
           fetchLatestWai(),
-          fetchWaiHistory()
+          fetchWaiHistory(),
+          fetchValidationStats() // <--- NEU
         ]);
+        
         setCurrentWai(latestData);
         setFullHistory(historyResponse.data || historyResponse);
+        setValidationData(validationResponse); // <--- DATEN SPEICHERN
+        
         if ((historyResponse.data || historyResponse).length > 0 && btcData === null) {
             setBtcData({ price: (historyResponse.data || historyResponse)[0].btc_close, change24h: 0 });
         }
-      } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
+      } catch (err: any) { 
+          setError(err.message); 
+      } finally { 
+          setIsLoading(false); 
+      }
     }
     loadData();
   }, []); 
@@ -96,7 +103,6 @@ export default function DashboardPage() {
   if (isLoading) return <main className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-950"><Loader2 className="h-10 w-10 animate-spin text-orange-500" /></main>;
   if (error) return <main className="min-h-screen flex items-center justify-center text-red-500 bg-neutral-50 dark:bg-neutral-950">{error}</main>;
 
-  // Definiere die Hover-Klasse (inklusive gpu-accelerated für Performance)
   const hoverEffect = "hover:scale-[1.02] hover:shadow-xl transition-all duration-300 ease-out cursor-default transform-gpu";
 
   return (
@@ -145,9 +151,9 @@ export default function DashboardPage() {
                             </span>
                         )}
                     </div>
-                    <p className={`text-2xl font-mono font-medium transition-colors duration-300 ${!btcData ? "text-neutral-700 dark:text-neutral-200" : isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                    <div className={`text-2xl font-mono font-medium transition-colors duration-300 ${!btcData ? "text-neutral-700 dark:text-neutral-200" : isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                         {btcData && typeof btcData.price === 'number' ? <NumberTicker value={btcData.price} prefix="$" decimals={2} /> : "Lade..."}
-                    </p>
+                    </div>
                 </div>
             </div>
         </FadeIn>
@@ -162,7 +168,6 @@ export default function DashboardPage() {
             </FadeIn>
             
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                
                 {/* 1. Activity */}
                 <FadeIn delay={0.1} className="h-full">
                     <Card className={`shadow-sm h-full flex flex-col justify-between dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
@@ -246,11 +251,9 @@ export default function DashboardPage() {
                     <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">Intent & Flow Analyse</h3>
                     <div className={`relative rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}> 
                         <PremiumWrapper isPremium={isPremium} featureName="Erweiterte Chart-Analyse">
-                            {/* CHECK: Daten da UND Wartezeit vorbei? */}
                             {fullHistory.length > 0 && chartsReady ? (
                                 <IntentChart data={fullHistory} />
                             ) : (
-                                // Platzhalter während der 500ms Wartezeit
                                 <div className="h-[400px] w-full bg-neutral-100 dark:bg-neutral-900/50 animate-pulse flex items-center justify-center">
                                     <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
                                 </div>
@@ -264,7 +267,6 @@ export default function DashboardPage() {
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">Markt-Kontext (WAI v2 vs Price)</h3>
                     <div className={`rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}>
-                        {/* CHECK */}
                         {fullHistory.length > 0 && chartsReady ? (
                             <ActivityChart data={fullHistory} />
                         ) : (
@@ -283,7 +285,6 @@ export default function DashboardPage() {
             <div className="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
                 <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">On-Chain Volumen Historie</h3>
                 <div className={`rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}>
-                    {/* CHECK */}
                     {fullHistory.length > 0 && chartsReady ? (
                         <CombinedChart data={fullHistory} />
                     ) : (
@@ -294,6 +295,28 @@ export default function DashboardPage() {
                 </div>
             </div>
         </FadeIn>
+
+        {/* --- NEU: VALIDATION STATS (BACKTEST) --- */}
+        <FadeIn delay={0.4}>
+            <div className="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-orange-500" />
+                    <h3 className="text-lg font-medium text-neutral-700 dark:text-neutral-300">Modell Validierung (Live Performance)</h3>
+                </div>
+                
+                <div className={`rounded-xl overflow-hidden border border-transparent dark:border-neutral-800 ${hoverEffect}`}>
+                    {validationData ? (
+                        <ValidationStats data={validationData} />
+                    ) : (
+                        // Skeleton für Validation Stats
+                        <div className="h-[300px] w-full bg-neutral-100 dark:bg-neutral-900/50 animate-pulse flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </FadeIn>
+
       </div>
     </main>
   );
