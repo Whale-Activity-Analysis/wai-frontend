@@ -64,9 +64,6 @@ export default function Navbar() {
             <Link href="/dashboard" className={isActive("/dashboard")}>
               {t('nav_dashboard')}
             </Link>
-            <Link href="/ai-analysis" className={isActive("/ai-analysis")}>
-              {t('nav_analysis')}
-            </Link>
             <Link href="/pricing" className={isActive("/pricing")}>
               {t('nav_pricing')}
             </Link>
@@ -103,67 +100,18 @@ export default function Navbar() {
               </Button>
             )}
 
-            {/* 3. Play/Snake (Immer sichtbar, zeigt aktiven Status) */}
-            <Link 
-              href="/snake" 
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors ${
-                isActive("/snake") 
-                  ? "bg-neutral-100 dark:bg-neutral-800 text-orange-500 font-medium" 
-                  : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-              }`}
-            >
-              <Gamepad2 className="h-4 w-4" />
-              <span className="hidden lg:inline text-xs font-bold uppercase">{t('play')}</span>
+            {/* 3. Login & Register */}
+            <Link href="/login" className="hidden md:block">
+                <Button variant="ghost" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
+                    {t('login')}
+                </Button>
             </Link>
-
-            <div className="h-6 w-[1px] bg-neutral-200 dark:bg-neutral-800 mx-1 hidden md:block" />
-
-            {/* 4. DYNAMISCHER AUTH-BEREICH */}
-            {mounted && (
-              user ? (
-                /* EINGELOGGT: User Profil Badge */
-                <div className="flex items-center gap-2 ml-2">
-                  <div className="flex flex-col items-end hidden lg:flex mr-1">
-                    <span className="text-xs font-bold dark:text-white leading-none">{user.name}</span>
-                    <span className="text-[9px] text-orange-500 font-bold uppercase tracking-tighter">{user.role}</span>
-                  </div>
-                  
-                  <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 rounded-full p-1 border border-neutral-200 dark:border-neutral-800">
-                    <div className="h-7 w-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                      {user.name.charAt(0)}
-                    </div>
-                    
-                    <Link href="/dashboard" className="p-1.5 text-neutral-500 hover:text-orange-500 transition-colors" title="Dashboard">
-                      <LayoutDashboard className="h-4 w-4" />
-                    </Link>
-                    
-                    <button 
-                      onClick={handleLogout}
-                      className="p-1.5 text-neutral-500 hover:text-red-500 transition-colors"
-                      title="Logout"
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* NICHT EINGELOGGT: Standard Buttons */
-                <div className="flex items-center gap-2">
-                  <Link href="/login" className="hidden md:block">
-                      <Button variant="ghost" size="sm" className="text-neutral-600 dark:text-neutral-400">
-                          {t('login')}
-                      </Button>
-                  </Link>
-                  
-                  <Link href="/register">
-                      <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20">
-                          {t('get_started')}
-                      </Button>
-                  </Link>
-                </div>
-              )
-            )}
-
+            
+            <Link href="/register">
+                <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20">
+                    {t('get_started')}
+                </Button>
+            </Link>
             {/* Mobile Menu Toggle */}
             <div className="md:hidden ml-1">
                  <Button variant="ghost" size="icon">
