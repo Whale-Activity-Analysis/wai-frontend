@@ -2,22 +2,38 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Bitcoin, Menu, Sun, Moon, Gamepad2, Languages } from "lucide-react";
+import { 
+  Bitcoin, Menu, Sun, Moon, Gamepad2, Languages, 
+  User, LogOut, LayoutDashboard 
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
   
-  // Wichtig für Theme-Switch und i18n: Verhindert Hydration-Fehler
   const [mounted, setMounted] = React.useState(false);
+  const [user, setUser] = React.useState<any>(null);
+
+  // Hydration fix & User check (wird bei jedem Pfadwechsel ausgeführt)
   React.useEffect(() => {
     setMounted(true);
-  }, []);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    setUser(null);
+    router.push("/");
+  };
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'de' ? 'en' : 'de';
@@ -80,12 +96,7 @@ export default function Navbar() {
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
               >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5 transition-all" />
-                ) : (
-                  <Moon className="h-5 w-5 transition-all" />
-                )}
-                <span className="sr-only">Toggle theme</span>
+                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
             )}
 
@@ -102,7 +113,7 @@ export default function Navbar() {
                 </Button>
             </Link>
             {/* Mobile Menu Toggle */}
-            <div className="md:hidden ml-2">
+            <div className="md:hidden ml-1">
                  <Button variant="ghost" size="icon">
                     <Menu className="h-5 w-5" />
                  </Button>
