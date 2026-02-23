@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic"; 
-import { useRouter } from "next/navigation"; // Importiert für Redirect
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import PremiumWrapper from "@/components/PremiumWrapper"; 
 import FadeIn from "@/components/FadeIn"; 
@@ -11,82 +11,79 @@ import NumberTicker from "@/components/NumberTicker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// --- KOMPONENTEN ---
+// --- KOMPONENTEN & API ---
 import ValidationStats from "@/components/ValidationStats";
-import { fetchLatestWai, fetchWaiHistory, fetchValidationStats } from "@/lib/api";
+import BacktestWidget from "@/components/BacktestWidget"; // <--- Unser neues Widget!
+import { 
+  fetchLatestWai, 
+  fetchWaiHistory, 
+  fetchValidationStats,
+  fetchMomentumStats,     
+  fetchConfidenceStats    
+} from "@/lib/api";
 import { 
   Bitcoin, TrendingUp, Activity, Loader2, ArrowRightLeft, Signal, LineChart, 
-  Lock, LockOpen, Target, LogOut 
+  Lock, LockOpen, Target, LogOut, Wind, ShieldCheck 
 } from "lucide-react";
 
 // --- DYNAMIC IMPORTS ---
-const ActivityChart = dynamic(() => import("@/components/ActivityChart"), { 
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
-});
-
-const CombinedChart = dynamic(() => import("@/components/CombinedChart"), { 
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
-});
-
-const IntentChart = dynamic(() => import("@/components/IntentChart"), { 
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" />
-});
+const ActivityChart = dynamic(() => import("@/components/ActivityChart"), { ssr: false, loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" /> });
+const CombinedChart = dynamic(() => import("@/components/CombinedChart"), { ssr: false, loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" /> });
+const IntentChart = dynamic(() => import("@/components/IntentChart"), { ssr: false, loading: () => <div className="h-[400px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-xl" /> });
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const router = useRouter();
   
+  // States für die Daten
   const [currentWai, setCurrentWai] = useState<any>(null);
   const [fullHistory, setFullHistory] = useState<any[]>([]);
   const [validationData, setValidationData] = useState<any>(null);
+  const [momentumData, setMomentumData] = useState<any>(null);      
+  const [confidenceData, setConfidenceData] = useState<any>(null);  
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false); 
-  const [user, setUser] = useState<any>(null); // State für User-Daten
+  const [user, setUser] = useState<any>(null);
   const [btcData, setBtcData] = useState<{ price: number; change24h: number } | null>(null);
   const [chartsReady, setChartsReady] = useState(false);
 
-  // 1. AUTH CHECK & INITIAL PREMIUM STATE
+  // 1. AUTH CHECK
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-
     if (!isLoggedIn || !storedUser) {
       router.push("/login");
       return;
     }
-
     const userData = JSON.parse(storedUser);
     setUser(userData);
-    
-    // Setze Premium-Status basierend auf der Rolle in der JSON/LocalStorage
-    if (userData.role === "premium") {
-      setIsPremium(true);
-    }
+    if (userData.role === "premium") setIsPremium(true);
 
-    const timer = setTimeout(() => {
-      setChartsReady(true);
-    }, 500);
+    const timer = setTimeout(() => setChartsReady(true), 500);
     return () => clearTimeout(timer);
   }, [router]);
 
-  // 2. DATA LOADING
+  // 2. DATA LOADING (5 Aufrufe parallel)
   useEffect(() => {
     async function loadData() {
       try {
-        const [latestData, historyResponse, validationResponse] = await Promise.all([
+        const [latestData, historyResponse, validationResponse, momentumRes, confidenceRes] = await Promise.all([
           fetchLatestWai(),
           fetchWaiHistory(),
-          fetchValidationStats()
+          fetchValidationStats(),
+          fetchMomentumStats(),   
+          fetchConfidenceStats()  
         ]);
         
         setCurrentWai(latestData);
         setFullHistory(historyResponse.data || historyResponse);
         setValidationData(validationResponse);
+        
+        // Extrahieren der neusten Werte aus dem Array
+        if (momentumRes && momentumRes.data) setMomentumData(momentumRes.data[0]);
+        if (confidenceRes && confidenceRes.data) setConfidenceData(confidenceRes.data[0]);
         
         if ((historyResponse.data || historyResponse).length > 0 && btcData === null) {
             setBtcData({ price: (historyResponse.data || historyResponse)[0].btc_close, change24h: 0 });
@@ -129,6 +126,13 @@ export default function DashboardPage() {
   if (error) return <main className="min-h-screen flex items-center justify-center text-red-500 bg-neutral-50 dark:bg-neutral-950">{error}</main>;
 
   const hoverEffect = "hover:scale-[1.01] hover:shadow-xl transition-all duration-300 ease-out cursor-default transform-gpu";
+
+  // Hilfslogik um Akkumulation/Distribution im UI korrekt (gedreht) darzustellen
+  const fixSignalText = (signal: string) => {
+      if (signal === 'accumulation') return 'distribution';
+      if (signal === 'selling_pressure') return 'accumulation';
+      return signal;
+  };
 
   return (
     <main className="min-h-screen bg-neutral-50/50 dark:bg-neutral-950 p-6 md:p-12 relative transition-colors duration-300">
@@ -191,7 +195,7 @@ export default function DashboardPage() {
             </div>
         </FadeIn>
 
-        {/* KPI KARTEN */}
+        {/* KPI KARTEN (Jetzt 6 Stück: 3 Spalten x 2 Reihen) */}
         <div className="space-y-6">
             <FadeIn delay={0.1}>
                 <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
@@ -200,7 +204,7 @@ export default function DashboardPage() {
                 </h2>
             </FadeIn>
             
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {/* 1. Activity */}
                 <FadeIn delay={0.1} className="h-full">
                     <Card className={`shadow-sm h-full flex flex-col justify-between dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
@@ -235,7 +239,7 @@ export default function DashboardPage() {
                     </Card>
                 </FadeIn>
 
-                {/* 3. Signal */}
+                {/* 3. Signal (Mit umgedrehter Logik) */}
                 <FadeIn delay={0.3} className="h-full">
                     <Card className={`shadow-sm h-full overflow-hidden relative flex flex-col dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
                         <PremiumWrapper isPremium={isPremium} featureName="Signal Phase">
@@ -245,10 +249,10 @@ export default function DashboardPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className={`text-xl font-bold capitalize truncate ${
-                                    currentWiiStatus?.wii_signal === 'accumulation' ? 'text-green-600 dark:text-green-400' : 
-                                    currentWiiStatus?.wii_signal === 'selling_pressure' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'
+                                    fixSignalText(currentWiiStatus?.wii_signal) === 'accumulation' ? 'text-green-600 dark:text-green-400' : 
+                                    fixSignalText(currentWiiStatus?.wii_signal) === 'distribution' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'
                                 }`}>
-                                    {currentWiiStatus?.wii_signal ? String(t(`signal_${currentWiiStatus.wii_signal}`, currentWiiStatus.wii_signal.replace('_', ' '))) : "--"}
+                                    {currentWiiStatus?.wii_signal ? String(t(`signal_${fixSignalText(currentWiiStatus.wii_signal)}`, fixSignalText(currentWiiStatus.wii_signal).replace('_', ' '))) : "--"}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">{String(t('matrix_interpretation', 'Strategische Einordnung'))}</p>
                             </CardContent>
@@ -256,8 +260,50 @@ export default function DashboardPage() {
                     </Card>
                 </FadeIn>
 
-                {/* 4. Netflow */}
+                {/* 4. Momentum */}
                 <FadeIn delay={0.4} className="h-full">
+                    <Card className={`shadow-sm h-full flex flex-col justify-between dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Whale Momentum</CardTitle>
+                            <Wind className="h-4 w-4 text-blue-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className={`text-xl font-bold flex items-center ${
+                                (momentumData?.whale_momentum || 0) > 0 ? 'text-green-600 dark:text-green-400' : 
+                                (momentumData?.whale_momentum || 0) < 0 ? 'text-red-600 dark:text-red-400' : 'text-neutral-900 dark:text-white'
+                            }`}>
+                                {momentumData?.whale_momentum !== undefined ? <><NumberTicker value={momentumData.whale_momentum} decimals={2} /></> : "--"}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 capitalize">
+                                Signal: {momentumData?.momentum_signal || 'neutral'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </FadeIn>
+
+                {/* 5. Confidence */}
+                <FadeIn delay={0.5} className="h-full">
+                    <Card className={`shadow-sm h-full flex flex-col justify-between dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Data Confidence</CardTitle>
+                            <ShieldCheck className="h-4 w-4 text-purple-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-xl font-bold text-neutral-900 dark:text-white flex items-center">
+                                {confidenceData?.confidence_score !== undefined ? <><NumberTicker value={confidenceData.confidence_score} decimals={1} /><span className="text-sm ml-1">%</span></> : "--"}
+                            </div>
+                            <p className={`text-xs mt-1 capitalize font-medium ${
+                                confidenceData?.confidence_level === 'high' ? 'text-green-500' : 
+                                confidenceData?.confidence_level === 'low' ? 'text-red-500' : 'text-yellow-500'
+                            }`}>
+                                Level: {confidenceData?.confidence_level || 'N/A'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </FadeIn>
+
+                {/* 6. Netflow */}
+                <FadeIn delay={0.6} className="h-full">
                     <Card className={`shadow-sm h-full flex flex-col justify-between dark:bg-neutral-900 dark:border-neutral-800 ${hoverEffect}`}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-neutral-600 dark:text-neutral-400">{String(t('netflow_24h', 'Exchange Netflow'))}</CardTitle>
@@ -336,6 +382,18 @@ export default function DashboardPage() {
                         ) : (
                             <div className="h-[300px] w-full animate-pulse bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center" />
                         )}
+                    </div>
+                </div>
+            </FadeIn>
+
+            {/* --- BACKTEST WIDGET --- */}
+            <FadeIn delay={0.5}>
+                <div className="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+                    <div className="rounded-xl overflow-hidden">
+                        {/* HIER WIRD DER WRAPPER GENUTZT UND DER STATUS ÜBERGEBEN */}
+                        <PremiumWrapper isPremium={isPremium} featureName="Interaktiver Backtester">
+                            <BacktestWidget isPremium={isPremium} />
+                        </PremiumWrapper>
                     </div>
                 </div>
             </FadeIn>
