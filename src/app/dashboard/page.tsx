@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 
 // --- KOMPONENTEN & API ---
 import ValidationStats from "@/components/ValidationStats";
-import BacktestWidget from "@/components/BacktestWidget"; // <--- Unser neues Widget!
+import BacktestWidget from "@/components/BacktestWidget";
 import { 
   fetchLatestWai, 
   fetchWaiHistory, 
@@ -51,9 +51,8 @@ export default function DashboardPage() {
 
   // 1. AUTH CHECK
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn || !storedUser) {
+    const storedUser = localStorage.getItem("currentUser");
+    if (!storedUser) {
       router.push("/login");
       return;
     }
@@ -65,7 +64,7 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // 2. DATA LOADING (5 Aufrufe parallel)
+  // 2. DATA LOADING (Mit robuster History-Findung und Number-Fix)
   useEffect(() => {
     async function loadData() {
       try {
@@ -78,15 +77,32 @@ export default function DashboardPage() {
         ]);
         
         setCurrentWai(latestData);
-        setFullHistory(historyResponse.data || historyResponse);
+
+        // --- ROBUSTE HISTORY-FINDUNG ---
+        let cleanHistory: any[] = [];
+        if (Array.isArray(historyResponse)) {
+            cleanHistory = historyResponse;
+        } else if (historyResponse?.data && Array.isArray(historyResponse.data)) {
+            cleanHistory = historyResponse.data;
+        } else if (historyResponse?.items && Array.isArray(historyResponse.items)) {
+            cleanHistory = historyResponse.items;
+        } else if (historyResponse?.history && Array.isArray(historyResponse.history)) {
+            cleanHistory = historyResponse.history;
+        }
+        
+        setFullHistory(cleanHistory);
         setValidationData(validationResponse);
         
         // Extrahieren der neusten Werte aus dem Array
-        if (momentumRes && momentumRes.data) setMomentumData(momentumRes.data[0]);
-        if (confidenceRes && confidenceRes.data) setConfidenceData(confidenceRes.data[0]);
+        if (momentumRes?.data && Array.isArray(momentumRes.data)) setMomentumData(momentumRes.data[0]);
+        if (confidenceRes?.data && Array.isArray(confidenceRes.data)) setConfidenceData(confidenceRes.data[0]);
         
-        if ((historyResponse.data || historyResponse).length > 0 && btcData === null) {
-            setBtcData({ price: (historyResponse.data || historyResponse)[0].btc_close, change24h: 0 });
+        // FIX: Sichere Typenumwandlung (Number) für den Fallback-Preis
+        if (cleanHistory.length > 0 && btcData === null) {
+            const fallbackPrice = Number(cleanHistory[0].btc_close);
+            if (!isNaN(fallbackPrice)) {
+                setBtcData({ price: fallbackPrice, change24h: 0 });
+            }
         }
       } catch (err: any) { 
           setError(err.message); 
@@ -97,25 +113,36 @@ export default function DashboardPage() {
     loadData();
   }, []); 
 
-  // 3. BTC TICKER
+  // 3. BTC TICKER (Zuverlässiger mit CoinGecko)
   useEffect(() => {
     const fetchTicker = async () => {
       try {
-        const res = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT");
-        if (!res.ok) throw new Error("Err");
-        const data = await res.json();
-        if (data && data.lastPrice) {
-            setBtcData({ price: parseFloat(data.lastPrice), change24h: parseFloat(data.priceChangePercent) });
+        // Alternative API ohne striktes CORS-Geoblocking
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true");
+        if (!res.ok) {
+           console.warn("Live-Ticker API blockiert. Nutze Backend-Fallback.");
+           return;
         }
-      } catch (e) { console.error(e); }
+        const data = await res.json();
+        if (data && data.bitcoin) {
+            setBtcData({ 
+                price: data.bitcoin.usd, 
+                change24h: data.bitcoin.usd_24h_change 
+            });
+        }
+      } catch (e) { 
+          console.error("Ticker fetch error:", e); 
+      }
     };
     fetchTicker();
-    const intervalId = setInterval(fetchTicker, 5000);
+    // 15 Sekunden ist optimal für die CoinGecko Rate-Limits
+    const intervalId = setInterval(fetchTicker, 15000);
     return () => clearInterval(intervalId);
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("isLoggedIn");
     router.push("/login");
   };
 
@@ -188,14 +215,15 @@ export default function DashboardPage() {
                             </span>
                         )}
                     </div>
+                    {/* FIX: Number check in UI */}
                     <div className={`text-2xl font-mono font-medium transition-colors duration-300 ${!btcData ? "text-neutral-700 dark:text-neutral-200" : isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                        {btcData && typeof btcData.price === 'number' ? <NumberTicker value={btcData.price} prefix="$" decimals={2} /> : "..."}
+                        {btcData && !isNaN(Number(btcData.price)) ? <NumberTicker value={Number(btcData.price)} prefix="$" decimals={2} /> : "..."}
                     </div>
                 </div>
             </div>
         </FadeIn>
 
-        {/* KPI KARTEN (Jetzt 6 Stück: 3 Spalten x 2 Reihen) */}
+        {/* KPI KARTEN */}
         <div className="space-y-6">
             <FadeIn delay={0.1}>
                 <h2 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-2">
@@ -214,7 +242,9 @@ export default function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold text-neutral-900 dark:text-white flex items-center">
-                                {currentWai?.wai !== undefined ? <NumberTicker value={currentWai.wai} decimals={0} /> : "0"}
+                                {(currentWai?.wai !== undefined || currentWai?.wai_score !== undefined) ? 
+                                  <NumberTicker value={currentWai.wai || currentWai.wai_score} decimals={0} /> 
+                                : "0"}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">{String(t('score_label', 'On-Chain Aktivität'))}</p>
                         </CardContent>
@@ -403,4 +433,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-//
