@@ -48,11 +48,6 @@ export default function LandingPage() {
                         {String(t('get_started', 'Kostenlos starten'))}
                     </Button>
                 </Link>
-                <Link href="/dashboard">
-                    <Button size="lg" variant="outline" className="px-8 h-12 text-base w-full sm:w-auto border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                        {String(t('view_demo', 'Live Demo ansehen'))}
-                    </Button>
-                </Link>
                 </div>
             </FadeIn>
             

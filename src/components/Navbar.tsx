@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { 
   Bitcoin, Menu, Sun, Moon, Gamepad2, Languages, 
-  User, LogOut, LayoutDashboard 
+  User, LogOut 
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
@@ -23,14 +23,18 @@ export default function Navbar() {
   // Hydration fix & User check (wird bei jedem Pfadwechsel ausgeführt)
   React.useEffect(() => {
     setMounted(true);
-    const storedUser = localStorage.getItem("user");
+    // Hier auf "currentUser" geändert, passend zur Login-Logik
+    const storedUser = localStorage.getItem("currentUser");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+    } else {
+      setUser(null);
     }
   }, [pathname]);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("isLoggedIn");
     setUser(null);
     router.push("/");
   };
@@ -64,7 +68,6 @@ export default function Navbar() {
             <Link href="/dashboard" className={isActive("/dashboard")}>
               {t('nav_dashboard')}
             </Link>
-            {/* Neu: AI-Analysis Link */}
             <Link href="/ai-analysis" className={isActive("/ai-analysis")}>
               AI-Analysis
             </Link>
@@ -79,7 +82,6 @@ export default function Navbar() {
         {/* --- RECHTS: ACTIONS --- */}
         <div className="flex items-center gap-2">
             
-            {/* Neu: Snake Game Toggle */}
             <Link href="/snake">
               <Button
                 variant="ghost"
@@ -116,18 +118,43 @@ export default function Navbar() {
               </Button>
             )}
 
-            {/* 3. Login & Register */}
-            <Link href="/login" className="hidden md:block">
-                <Button variant="ghost" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
-                    {t('login')}
+            {/* 3. Login / User Profil Toggle */}
+            {user ? (
+              <div className="flex items-center gap-2 ml-2">
+                <div className="hidden md:flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800/50 py-1.5 px-3 rounded-full border border-neutral-200 dark:border-neutral-700">
+                  <div className="h-6 w-6 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
+                    <User className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                  </div>
+                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                    {user.name?.split(' ')[0] || "User"}
+                  </span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleLogout} 
+                  title="Logout" 
+                  className="text-neutral-500 hover:text-red-500 dark:hover:text-red-400"
+                >
+                  <LogOut className="h-5 w-5" />
                 </Button>
-            </Link>
-            
-            <Link href="/register">
-                <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20">
-                    {t('get_started')}
-                </Button>
-            </Link>
+              </div>
+            ) : (
+              <>
+                <Link href="/login" className="hidden md:block">
+                    <Button variant="ghost" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
+                        {t('login')}
+                    </Button>
+                </Link>
+                
+                <Link href="/register">
+                    <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm shadow-orange-500/20">
+                        {t('get_started')}
+                    </Button>
+                </Link>
+              </>
+            )}
+
             {/* Mobile Menu Toggle */}
             <div className="md:hidden ml-1">
                  <Button variant="ghost" size="icon">
