@@ -165,20 +165,18 @@ function IntentChart({ data }: Props) {
               />
 
               <ReferenceLine 
-                y={75} 
-                yAxisId="left" 
-                stroke="#ef4444" 
-                strokeDasharray="3 3" 
-                opacity={0.5} 
-                label={{ value: String(t('signal_selling_pressure', 'Dist')), fill: "#ef4444", fontSize: 9, fontWeight: 'bold', position: 'insideBottomLeft', dy: -5 }} 
+                  y={75} 
+                  yAxisId="left" 
+                  stroke="#22c55e" 
+                  strokeDasharray="3 3" 
+                  label={{ position: 'insideTopLeft',  value: 'Accumulation', fontSize: 10, fill: '#22c55e' }} 
               />
               <ReferenceLine 
-                y={25} 
-                yAxisId="left" 
-                stroke="#22c55e" 
-                strokeDasharray="3 3" 
-                opacity={0.5} 
-                label={{ value: String(t('signal_accumulation', 'Acc')), fill: "#22c55e", fontSize: 9, fontWeight: 'bold', position: 'insideTopLeft', dy: 5 }} 
+                  y={25} 
+                  yAxisId="left" 
+                  stroke="#ef4444" 
+                  strokeDasharray="3 3" 
+                  label={{ position: 'insideBottomLeft', value: 'Distribution', fontSize: 10, fill: '#ef4444' }} 
               />
 
               <Bar yAxisId="right" dataKey="exchange_netflow" radius={[2, 2, 0, 0]} maxBarSize={40} isAnimationActive={false}>

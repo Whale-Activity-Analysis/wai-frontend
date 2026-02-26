@@ -64,6 +64,10 @@ export default function Navbar() {
             <Link href="/dashboard" className={isActive("/dashboard")}>
               {t('nav_dashboard')}
             </Link>
+            {/* Neu: AI-Analysis Link */}
+            <Link href="/ai-analysis" className={isActive("/ai-analysis")}>
+              AI-Analysis
+            </Link>
             <Link href="/pricing" className={isActive("/pricing")}>
               {t('nav_pricing')}
             </Link>
@@ -75,6 +79,18 @@ export default function Navbar() {
         {/* --- RECHTS: ACTIONS --- */}
         <div className="flex items-center gap-2">
             
+            {/* Neu: Snake Game Toggle */}
+            <Link href="/snake">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-neutral-500 hover:text-orange-500 dark:text-neutral-400 dark:hover:text-orange-500"
+                title="Play Snake"
+              >
+                <Gamepad2 className="h-5 w-5" />
+              </Button>
+            </Link>
+
             {/* 1. Language Toggle */}
             {mounted && (
               <Button
